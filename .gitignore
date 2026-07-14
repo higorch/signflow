@@ -1,9 +1,12 @@
+# Dependências
 /src/vendor/
 /src/node_modules/
 
+# Build
 /src/public/hot
 /src/public/storage
 
+# Storage
 /src/storage/*.key
 /src/storage/app/*
 !/src/storage/app/public/
@@ -13,18 +16,27 @@
 /src/storage/framework/views/*
 /src/storage/logs/*
 
+# Cache
 /src/bootstrap/cache/*
 
+# Ambiente
 /src/.env
 /src/.env.*
 !/src/.env.example
 
+# PHPUnit
 /src/.phpunit.result.cache
 
+# Docker
 /.docker/mysql/data/
 /.docker/nginx/log/
 
-/.composer/
-
+# Arquivos do sistema
 .DS_Store
 Thumbs.db
+
+# Bash
+/src/.bash_history
+
+# Composer
+/src/.composer/
