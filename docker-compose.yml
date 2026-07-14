@@ -1,0 +1,54 @@
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app
+    restart: always
+    tty: true
+    working_dir: /var/www
+    volumes:
+      - ./src:/var/www
+    depends_on:
+      - mysqlsignflow
+    networks:
+      - webserver
+
+  mysqlsignflow:
+    image: mysql:8.0
+    container_name: mysqlsignflow
+    restart: always
+    tty: true
+    ports:
+      - "3329:3306"
+    volumes:
+      - ./.docker/mysql/data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - webserver
+
+  nginxsignflow:
+    image: nginx:alpine
+    container_name: nginxsignflow
+    restart: always
+    tty: true
+    ports:
+      - "8029:80"
+    volumes:
+      - ./src:/var/www
+      - ./.docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./.docker/nginx/log:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - webserver
+
+networks:
+  webserver:
+    driver: bridge
