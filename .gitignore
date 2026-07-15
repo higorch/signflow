@@ -1,6 +1,8 @@
 # Dependências
 /src/vendor/
 /src/node_modules/
+/src/.npm/
+/src/.node_repl_history
 
 # Build
 /src/public/hot
@@ -30,6 +32,7 @@
 # Docker
 /.docker/mysql/data/
 /.docker/nginx/log/
+/.docker/mailpit/data/
 
 # Arquivos do sistema
 .DS_Store
