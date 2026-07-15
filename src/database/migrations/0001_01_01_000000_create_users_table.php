@@ -13,16 +13,30 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
+            $table->ulid()->unique();
+
+            // publicos protegidos
+            $table->string('name')->nullable();
+            $table->string('name_hash', 64)->nullable()->index();
+            $table->text('email')->nullable();
+            $table->string('email_hash', 64)->nullable()->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+
+            // privados sensiveis
+            $table->string('status', 15)->index(); // active, blocked
+            $table->text('cpf_cnpj')->nullable();
+            $table->string('cpf_cnpj_hash', 64)->unique()->index()->nullable();
+            $table->text('role')->nullable(); // root, admin, signer
+            $table->string('role_hash', 64)->index();
+
+            // sistema
             $table->rememberToken();
             $table->timestamps();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
+            $table->string('email_hash', 64)->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
