@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', function () {
+    return redirect()->route('panel.dashboard.index');
+});
+
 Route::group(['prefix' => 'panel', 'as' => 'panel.'], function () {
     Route::livewire('dashboard', 'pages::panel.dashboard.index')->name('dashboard.index');
 
