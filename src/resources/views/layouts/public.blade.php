@@ -23,7 +23,7 @@
 
 <body x-data="public" x-bind="events" class="antialiased bg-background">
 
-    <main class="flex-1 flex flex-col px-6 lg:px-10 pb-10" x-data="{{ AuthService::panelMainAlpineJsComponent() }}" x-bind="events">{{ $slot }}</main>
+    <main class="flex-1 flex flex-col px-6 lg:px-10 pb-10">{{ $slot }}</main>
     
     @livewireScripts
 </body>

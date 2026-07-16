@@ -57,7 +57,7 @@
 
         <div x-cloak :class="menuOpen ? 'lg:ml-64' : 'lg:ml-20'" class="min-h-dvh flex flex-col transition-all duration-300">
             <livewire:global.panel-header />
-            <main class="flex-1 flex flex-col px-6 lg:px-10 pb-10" x-data="{{ AuthService::panelMainAlpineJsComponent() }}" x-bind="events">{{ $slot }}</main>
+            <main class="flex-1 flex flex-col px-6 lg:px-10 pb-10">{{ $slot }}</main>
         </div>
 
     </div>

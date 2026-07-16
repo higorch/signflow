@@ -14,8 +14,9 @@ import '@utils/percent';
 import '@utils/notify';
 
 // LAYOUTS
-import '@layouts/signer';
+import '@layouts/auth';
 import '@layouts/panel';
+import '@layouts/signer';
 
 Livewire.directive('confirm-modal', ({ el, directive, cleanup }) => {
 

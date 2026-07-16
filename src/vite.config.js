@@ -27,8 +27,10 @@ export default defineConfig({
                 'resources/src/js/vendors/pdf-js.js',
                 'resources/src/js/vendors/swiper.js',
                 // LAYOUTS
-                'resources/src/js/layouts/signer.js',
+                'resources/src/js/layouts/auth.js',
                 'resources/src/js/layouts/panel.js',
+                'resources/src/js/layouts/signer.js',
+
                 // JS APP
                 'resources/src/js/app.js',
             ],

@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('status', 15)->index(); // active, blocked
             $table->text('cpf_cnpj')->nullable();
             $table->string('cpf_cnpj_hash', 64)->unique()->index()->nullable();
-            $table->text('role')->nullable(); // root, admin, signer
+            $table->text('role')->nullable(); // root, admin, customer, signer
             $table->string('role_hash', 64)->index();
 
             // sistema

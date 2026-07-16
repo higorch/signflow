@@ -38,7 +38,7 @@ class User extends Authenticatable
         'password',
         'status',
         'cpf_cnpj',
-        'role',
+        'role', // root, admin, customer, signer
     ];
 
     /**

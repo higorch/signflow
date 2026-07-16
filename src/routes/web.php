@@ -6,6 +6,13 @@ Route::get('/', function () {
     return redirect()->route('panel.dashboard.index');
 });
 
+Route::group(['prefix' => 'auth', 'as' => 'auth.', 'middleware' => 'guest'], function () {
+    Route::livewire('/login', 'pages::auth.login')->name('login');
+    Route::livewire('/signup', 'pages::auth.signup')->name('signup');
+    Route::livewire('/forgot-password', 'pages::auth.forgot-password')->name('forgot.password');
+    Route::livewire('/reset-password/{token}', 'pages::auth.reset-password')->name('reset.password');
+});
+
 Route::group(['prefix' => 'panel', 'as' => 'panel.'], function () {
     Route::livewire('dashboard', 'pages::panel.dashboard.index')->name('dashboard.index');
 

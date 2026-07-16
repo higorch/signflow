@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('processes', function (Blueprint $table) {
-            $table->foreignUlid('category_id');
+            $table->foreignUlid('category_id')->nullable();
             $table->foreign('category_id')->references('id')->on('categories')->cascadeOnUpdate()->cascadeOnDelete();
         });
     }
