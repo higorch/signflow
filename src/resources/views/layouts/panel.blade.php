@@ -31,7 +31,7 @@
 
             <div class="h-20.25 flex items-center justify-center border-b border-[#fada82]/5 px-4 shrink-0" title="Experiência renovada, Ecossistema Provenda">
                 <img x-show="menuOpen || mobileMenu" src="{{ Vite::asset('resources/assets/images/logo-white.png') }}" class="w-full max-w-36">
-                <img x-show="!menuOpen && !mobileMenu" src="{{ Vite::asset('resources/assets/images/logo-white.png') }}" class="w-12 h-auto">
+                <img x-show="!menuOpen && !mobileMenu" src="{{ Vite::asset('resources/assets/images/icon-white.png') }}" class="w-9 h-auto">
             </div>
 
             <nav class="grow p-4 space-y-2 text-sm overflow-y-auto">
