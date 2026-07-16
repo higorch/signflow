@@ -13,7 +13,7 @@ window.confirmModal = function (options = {}) {
 
     modal.innerHTML = `
         <div class="flex items-center justify-center min-h-dvh p-6">
-            <div class="relative w-full max-w-lg rounded-md shadow-lg bg-linear-to-br from-[#2b0b14] via-[#18080d] to-[#1a090d]">
+            <div class="relative w-full max-w-lg rounded-md shadow-lg bg-card">
                 <span class="close absolute top-4 right-4 text-lg cursor-pointer text-gray-400 hover:text-red-500">
                     <i class="las la-times"></i>
                 </span>
@@ -38,6 +38,8 @@ window.confirmModal = function (options = {}) {
     `;
 
     document.body.appendChild(modal);
+
+    window.dispatchEvent(new Event('modal:opened'));
 
     const destroy = () => modal.remove();
 

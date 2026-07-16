@@ -13,88 +13,45 @@
 
 @theme {
 
-   /* =========================
-      FONT
-   ========================= */
-
+   /* Font */
    --font-sans: "Google Sans", "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", ui-sans-serif, system-ui;
 
-   /* =========================
-      LAYOUT
-   ========================= */
-
-   --color-background: #0c1528;
-   --color-sidebar: #08101f;
-   --color-header: #0c1528;
+   /* Layout */
+   --color-background: #0e141d;
+   --color-sidebar: #0a1018;
+   --color-header: #0e141d;
    --color-overlay: rgb(0 0 0 / .40);
 
-   /* =========================
-      SURFACES
-   ========================= */
+   /* Surface */
+   --color-surface: #1a2430;
+   --color-card: #202c39;
+   --color-card-hover: #273545;
+   --color-surface-active: #314256;
 
-   --color-card: #222b3f;
-   --color-card-hover: #2a344b;
-   --color-surface: #283349;
-   --color-surface-hover: #1f2738;
+   /* Input */
+   --color-input: #171f2a;
+   --color-input-focus: #1d2734;
 
-   /* =========================
-      INPUTS
-   ========================= */
+   /* Border */
+   --color-border: #33465d;
+   --color-border-input: #445b77;
+   --color-border-hover: #5a7598;
 
-   --color-input: #171d2c;
-   --color-input-focus: #1b2234;
+   /* Brand */
+   --color-primary: #3574e8;
+   --color-primary-hover: #4a8ff5;
 
-   /* =========================
-      BORDERS
-   ========================= */
+   /* Text */
+   --color-text: #f4f7fc;
+   --color-text-soft: #dce5f1;
+   --color-text-muted: #b3c0d2;
+   --color-placeholder: #8697ae;
 
-   --color-border: #303a4f;
-   --color-border-input: #39455f;
-   --color-border-hover: #46536f;
-
-   /* =========================
-      BRAND
-   ========================= */
-
-   --color-primary: #1d49bd;
-   --color-primary-hover: #4f7cff;
-
-   /* =========================
-      GOLD
-   ========================= */
-
-   --color-gold: #d49f4d;
-   --color-gold-dark: #ae632c;
-
-   /* =========================
-      TEXT
-   ========================= */
-
-   --color-text: #eef2ff;
-   --color-text-soft: #d6ddeb;
-   --color-text-muted: #c7cfde;
-   --color-placeholder: #7f8aa3;
-
-   /* =========================
-      STATES
-   ========================= */
-
-   --color-success: #10b981;
+   /* State */
+   --color-success: #22c55e;
    --color-warning: #f59e0b;
    --color-danger: #ef4444;
-   --color-info: #0ea5e9;
-
-   /* =========================
-      WHITE ALPHAS
-   ========================= */
-
-   --color-white-05: rgb(255 255 255 / .05);
-   --color-white-08: rgb(255 255 255 / .08);
-   --color-white-10: rgb(255 255 255 / .10);
-   --color-white-20: rgb(255 255 255 / .20);
-   --color-white-40: rgb(255 255 255 / .40);
-   --color-white-60: rgb(255 255 255 / .60);
-   --color-white-80: rgb(255 255 255 / .80);
+   --color-info: #38bdf8;
 
 }
 

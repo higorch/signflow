@@ -91,6 +91,12 @@ document.addEventListener('alpine:init', () => {
         nextSibling: null,
         init() {
             this.$nextTick(() => this.setup());
+
+            this._modalOpenedHandler = () => {
+                this.open = false;
+            };
+
+            window.addEventListener('modal:opened', this._modalOpenedHandler);
         },
         setup() {
             const referenceEl = this.$refs.referenceDropdown;
@@ -114,6 +120,8 @@ document.addEventListener('alpine:init', () => {
             });
 
             this.$el.addEventListener('alpine:destroy', () => {
+                window.removeEventListener('modal:opened', this._modalOpenedHandler);
+
                 this.restoreToOrigin(floatingEl);
                 this.stopAutoUpdate();
                 this.removeGlobalListeners();
@@ -217,8 +225,10 @@ document.addEventListener('alpine:init', () => {
                 document.body.style.overflow = value ? 'hidden' : 'auto';
 
                 if (value === false) {
+                    window.dispatchEvent(new Event('modal:closed'));
                     this.$dispatch('closed.' + this.ref, this.payload);
                 } else if (value === true) {
+                    window.dispatchEvent(new Event('modal:opened'));
                     this.$dispatch('opened.' + this.ref, this.payload); // agora vai com dados
                 }
 

@@ -4,7 +4,10 @@ use Livewire\Component;
 
 new class extends Component
 {
-    //
+    public function delete()
+    {
+        return;
+    }
 };
 ?>
 
@@ -58,7 +61,7 @@ new class extends Component
                                         <i class="las la-pen"></i>Editar
                                     </a>
                                     <div class="my-1 h-px bg-border"></div>
-                                    <a href="#" @click.prevent class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-text-muted/75 transition hover:bg-card-hover hover:text-text">
+                                    <a href="#" wire:click.prevent="delete" wire:confirm-modal="Excluir Usuário | Deseja realmente excluir este usuário permanentemente?" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-text-muted/75 transition hover:bg-card-hover hover:text-text">
                                         <i class="las la-trash"></i>Excluir
                                     </a>
                                 </div>
