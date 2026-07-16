@@ -29,18 +29,18 @@ new class extends Component
 
         <div class="flex items-start gap-4">
             <button @click="mobileMenu=true" class="lg:hidden relative cursor-pointer w-10 h-10 flex items-center justify-center rounded-md bg-white/8 hover:bg-white/10 active:scale-95 transition shadow-md ring-1 ring-white/10">
-                <div class="flex flex-col text-[#e3e3e3]">
+                <div class="flex flex-col text-text-soft">
                     <i class="las la-bars text-xl"></i>
                     <span class="text-[8px]">Menu</span>
                 </div>
-                <i class="las la-angle-right text-[10px] absolute -left-1 -bottom-1 rounded-full p-0.5 bg-[#1d49bd] text-[#e3e3e3]"></i>
+                <i class="las la-angle-right text-[10px] absolute -left-1 -bottom-1 rounded-full p-0.5 bg-primary text-text-soft"></i>
             </button>
             <button @click="menuOpen=!menuOpen" class="hidden lg:flex relative cursor-pointer w-10 h-10 items-center justify-center rounded-md bg-white/8 hover:bg-white/10 active:scale-95 transition shadow-md ring-1 ring-white/10">
-                <div class="flex flex-col text-[#e3e3e3]">
+                <div class="flex flex-col text-text-soft">
                     <i class="las la-bars text-xl"></i>
                     <span class="text-[8px]">Menu</span>
                 </div>
-                <i class="las text-[10px] absolute -left-1.5 -bottom-1.5 rounded-full p-0.5 bg-[#1d49bd] text-[#e3e3e3] transition-all duration-300" :class="menuOpen ? 'la-angle-left' : 'la-angle-right'"></i>
+                <i class="las text-[10px] absolute -left-1.5 -bottom-1.5 rounded-full p-0.5 bg-primary text-text-soft transition-all duration-300" :class="menuOpen ? 'la-angle-left' : 'la-angle-right'"></i>
             </button>
         </div>
 

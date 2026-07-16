@@ -77,7 +77,7 @@ new class extends Component
 
 <div x-data="dropdown('bottom-end', 'absolute', 10)" @click.outside="open=false" class="relative z-20">
     <a x-ref="referenceDropdown" href="#" @click.prevent="open=!open" class="flex items-center gap-3">
-        <div class="size-10 rounded-full overflow-hidden flex items-center justify-center text-[10px] font-semibold shrink-0 ring-2 bg-white/8 ring-white/20 text-[#e3e3e3]">
+        <div class="size-10 rounded-full overflow-hidden flex items-center justify-center text-[10px] font-semibold shrink-0 ring-2 bg-white/8 ring-white/20 text-text-soft">
             @if(optional($user)->avatar)
             <img src="{{ $user->avatar->public_url }}" class="w-full h-full object-cover">
             @else
@@ -85,12 +85,12 @@ new class extends Component
             @endif
         </div>
     </a>
-    <div x-ref="floatingDropdown" :class="{'flex':open,'hidden':!open}" class="absolute right-0 hidden w-40 flex-col gap-1 rounded-md border border-[#303a4f] bg-[#222b3f] p-2 shadow-lg">
-        <a href="{{ $profileUrl }}" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-[#c7cfde]/75 transition hover:bg-[#2a344b] hover:text-[#eef2ff]">
+    <div x-ref="floatingDropdown" :class="{'flex':open,'hidden':!open}" class="absolute right-0 hidden w-40 flex-col gap-1 rounded-md border border-border bg-card p-2 shadow-lg">
+        <a href="{{ $profileUrl }}" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-text-muted/75 transition hover:bg-card-hover hover:text-text">
             <i class="las la-user text-base"></i> Meu perfil
         </a>
-        <div class="my-1 h-px bg-[#303a4f]"></div>
-        <a href="#" @click.prevent="$dispatch('logout')" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-[#c7cfde]/75 transition hover:bg-[#2a344b] hover:text-[#eef2ff]">
+        <div class="my-1 h-px bg-border"></div>
+        <a href="#" @click.prevent="$dispatch('logout')" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-text-muted/75 transition hover:bg-card-hover hover:text-text">
             <i class="las la-sign-out-alt text-base"></i> Sair
         </a>
     </div>

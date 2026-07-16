@@ -23,13 +23,13 @@ new class extends Component
     {{-- CABEÇALHO --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-3">
         <div class="flex items-center gap-4">
-            <a href="{{ route('panel.signers.index') }}" wire:navigate class="inline-flex items-center justify-center rounded-md border border-[#394150]/30 bg-[#394150]/5 px-3 py-2 text-[#e3e3e3] transition hover:bg-[#1f2738]">
+            <a href="{{ route('panel.signers.index') }}" wire:navigate class="inline-flex items-center justify-center rounded-md border border-[#394150]/30 bg-[#394150]/5 px-3 py-2 text-text-soft transition hover:bg-surface-hover">
                 <i class="las la-angle-left text-base"></i>
             </a>
-            <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-[#e3e3e3]">Cadastrar Signatário</h3>
+            <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-text-soft">Cadastrar Signatário</h3>
         </div>
         <div class="flex items-center justify-between gap-3">
-            <a href="#" wire:click.prevent="submit" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-[#1d49bd] px-6 py-3 text-xs font-semibold uppercase tracking-wide text-[#e3e3e3] shadow-lg transition hover:brightness-110">
+            <a href="#" wire:click.prevent="submit" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-text-soft shadow-lg transition hover:brightness-110">
                 <i class="las la-save text-lg"></i>
                 Salvar
             </a>
@@ -39,7 +39,7 @@ new class extends Component
     {{-- FORMULÁRIO --}}
     <div class="grow">
 
-        <div class="grid grid-cols-12 gap-4 rounded-md p-4 border border-[#303a4f] bg-[#222b3f] shadow-xl">
+        <div class="grid grid-cols-12 gap-4 rounded-md p-4 border border-border bg-card shadow-xl">
 
             {{-- NOME --}}
             <div class="relative col-span-full md:col-span-6 flex flex-col gap-2">
@@ -95,7 +95,7 @@ new class extends Component
 
     {{-- AÇÕES --}}
     <div class="flex flex-col-reverse gap-4 md:flex-row md:items-center md:justify-between mt-3">
-        <a href="{{ route('panel.signers.index') }}" wire:navigate class="text-center text-[11px] uppercase tracking-wide text-[#e3e3e3]/50 transition hover:text-[#e3e3e3]"><i class="las la-angle-left text-xs"></i> Voltar</a>
+        <a href="{{ route('panel.signers.index') }}" wire:navigate class="text-center text-[11px] uppercase tracking-wide text-text-soft/50 transition hover:text-text-soft"><i class="las la-angle-left text-xs"></i> Voltar</a>
     </div>
 
 </div>

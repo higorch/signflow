@@ -21,7 +21,7 @@
     </style>
 </head>
 
-<body x-data="public" x-bind="events" class="antialiased bg-linear-to-br from-[#2b0b14] via-[#18080d] to-[#0d0d0d]">
+<body x-data="public" x-bind="events" class="antialiased bg-background">
 
     <main class="flex-1 flex flex-col px-6 lg:px-10 pb-10" x-data="{{ AuthService::panelMainAlpineJsComponent() }}" x-bind="events">{{ $slot }}</main>
     

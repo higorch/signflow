@@ -18,10 +18,10 @@ window.confirmModal = function (options = {}) {
                     <i class="las la-times"></i>
                 </span>
                 <div class="flex items-center w-full p-4 border-b border-[#fada82]/5">
-                    <p class="font-semibold text-lg text-[#e3e3e3]">${title}</p>
+                    <p class="font-semibold text-lg text-text-soft">${title}</p>
                 </div>
                 <div class="flex flex-col grow p-4">
-                    <p class="text-[#e3e3e3]/70 leading-relaxed">${message}</p>
+                    <p class="text-text-soft/70 leading-relaxed">${message}</p>
                 </div>
                 <div class="flex gap-4 w-full p-4 border-t border-[#fada82]/5">
                     <button class="cancel flex-1 btn-secuondary">
