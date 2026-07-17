@@ -56,7 +56,9 @@ new class extends Component
     #[Computed]
     public function user()
     {
-        return Auth::user();
+        return Auth::user()->load([
+            'avatar'
+        ]);
     }
 
     #[Computed]
@@ -77,6 +79,9 @@ new class extends Component
 
 <div x-data="dropdown('bottom-end', 'absolute', 10)" @click.outside="open=false" class="relative z-20">
     <a x-ref="referenceDropdown" href="#" @click.prevent="open=!open" class="flex items-center gap-3">
+        <span class="font-medium text-sm text-text-muted">
+            {{ collect(explode(' ', trim($user->display_name)))->take(2)->implode(' ') }}
+        </span>
         <div class="size-10 rounded-full overflow-hidden flex items-center justify-center text-[10px] font-semibold shrink-0 ring-2 bg-white/8 ring-white/20 text-text-soft">
             @if(optional($user)->avatar)
             <img src="{{ $user->avatar->public_url }}" class="w-full h-full object-cover">

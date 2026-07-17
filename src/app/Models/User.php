@@ -99,11 +99,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Process::class);
     }
 
-    protected function avatar(): Attribute
+    public function avatar()
     {
-        return Attribute::make(
-            get: fn() => $this->hotFeedAvatar ?? $this->companionAvatar,
-        );
+        return $this->morphOne(Attachment::class, 'attachable')->where('taxonomy', 'user-avatar')->where('status', 'active');
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        return filled($this->nickname) ? $this->nickname : $this->name;
     }
 
     public function getCreatedAtAttribute(?string $value)

@@ -42,13 +42,18 @@
                 </a>
 
                 <a href="{{ route('panel.processes.index') }}" wire:navigate class="flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-all duration-200 {{ request()->routeIs('panel.processes.*') ? 'bg-primary text-text-soft shadow-sm' : 'text-text-soft/80 hover:bg-white/10 backdrop-blur-md]' }}">
-                    <i class="las la-file-alt text-lg"></i>
+                    <i class="las la-file-signature text-lg"></i>
                     <span class="whitespace-nowrap" x-show="menuOpen || mobileMenu" x-transition.opacity.duration.150ms>Processos</span>
                 </a>
 
                 <a href="{{ route('panel.signers.index') }}" wire:navigate class="flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-all duration-200 {{ request()->routeIs('panel.signers.*') ? 'bg-primary text-text-soft shadow-sm' : 'text-text-soft/80 hover:bg-white/10 backdrop-blur-md]' }}">
-                    <i class="las la-users text-lg"></i>
+                    <i class="las la-signature text-lg"></i>
                     <span class="whitespace-nowrap" x-show="menuOpen || mobileMenu" x-transition.opacity.duration.150ms>Signatários</span>
+                </a>
+
+                <a href="{{ route('panel.users.index') }}" wire:navigate class="flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-all duration-200 {{ request()->routeIs('panel.users.*') ? 'bg-primary text-text-soft shadow-sm' : 'text-text-soft/80 hover:bg-white/10 backdrop-blur-md]' }}">
+                    <i class="las la-user-friends text-lg"></i>
+                    <span class="whitespace-nowrap" x-show="menuOpen || mobileMenu" x-transition.opacity.duration.150ms>Usuários</span>
                 </a>
 
             </nav>
