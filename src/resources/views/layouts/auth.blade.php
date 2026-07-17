@@ -52,11 +52,9 @@
                         Gestão de Processos Digitais
                     </span>
                     <h1 class="mt-6 text-4xl lg:text-5xl font-bold leading-9 lg:leading-13 text-text">
-                        Assine processos
-                        <span class="text-primary">digitalmente</span>
-                        com segurança.
+                        Assine processos digitalmente com segurança.
                     </h1>
-                    <p class="mt-6 text-lg lg:text-xl leading-6 lg:leading-8 text-text-soft">
+                    <p class="mt-6 text-lg lg:text-xl leading-6 lg:leading-8 text-text-muted">
                         Centralize documentos, acompanhe aprovações e realize
                         assinaturas eletrônicas em uma plataforma moderna e segura.
                     </p>

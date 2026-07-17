@@ -1,7 +1,8 @@
 <?php
 
-use App\Notifications\Auth\ResetPasswordNotification;
-use Illuminate\Support\Facades\Password;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -11,7 +12,17 @@ new class extends Component
 
     public function render()
     {
-        return $this->view()->layout('layouts::auth')->title($this->pageTitle);
+        return $this->view([
+            'pageTitle' => $this->pageTitle
+        ])->layout('layouts::auth')->title($this->pageTitle);
+    }
+
+    public function exception($e, $stopPropagation)
+    {
+        if ($e instanceof ValidationException) {
+            $this->dispatch('errors-forgot-password', errors: $this->getErrorBag());
+            $this->errorToastErrorBag();
+        }
     }
 
     #[Computed]
@@ -20,30 +31,37 @@ new class extends Component
         return 'Recuperar senha';
     }
 
-    public function rendered()
-    {
-        $this->dispatch('errors-forgot-password', errors: $this->getErrorBag());
-
-        $this->errorToastErrorBag();
-        $this->resetErrorBag();
-    }
-
     public function submit()
     {
-        $credentials = $this->validate([
-            'email' => 'required|email',
-        ]);
+        $this->validate();
 
-        $status = Password::sendResetLink($credentials, function ($user, $token) {
-            $user->notify(new ResetPasswordNotification($token));
-        });
+        try {
+            $sent = AuthService::sendResetPasswordLink($this->email);
 
-        if ($status === Password::ResetLinkSent) {
-            session()->flash('success', 'Por favor, verifique sua caixa de entrada ou pasta de spam no e-mail ' . $this->email  . ' para criar uma nova senha.');
-            $this->reset('email');
-        } else {
-            session()->flash('warning', "Por favor, verifique sua identidade inserindo o endereço de e-mail associado à sua conta.");
+            if ($sent) {
+                session()->flash('success', 'Por favor, verifique sua caixa de entrada ou pasta de spam no e-mail ' . $this->email . ' para criar uma nova senha.');
+
+                $this->reset('email');
+            } else {
+                session()->flash('warning', 'Por favor, verifique sua identidade inserindo o endereço de e-mail associado à sua conta.');
+            }
+        } catch (\Throwable $e) {
+            Log::channel('auth')->error('Erro na tentativa de recuperar senha', ['message' => $e->getMessage()]);
+
+            session()->flash('warning', 'Não foi possível enviar o e-mail de recuperação de senha no momento. Tente novamente em alguns instantes.');
         }
+    }
+
+    protected function prepareForValidation($attributes): array
+    {
+        return $attributes;
+    }
+
+    public function rules()
+    {
+        return [
+            'email' => 'required|email',
+        ];
     }
 
     private function errorToastErrorBag()
@@ -68,7 +86,7 @@ new class extends Component
     <div wire:loading.class="loading-box-fade" wire:keydown.enter="submit" class="relative w-full max-w-md rounded-md shadow-xl p-6 overflow-hidden border border-border bg-card">
 
         <!-- Title -->
-        <h2 class="text-xl font-semibold text-white text-center mb-4">Recupere sua senha</h2>
+        <h2 class="text-xl font-semibold text-white text-center mb-4">{{ $pageTitle }}</h2>
 
         <!-- Form -->
         <div class="flex flex-col gap-3">

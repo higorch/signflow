@@ -1,6 +1,9 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -12,53 +15,68 @@ new class extends Component
 
     public function render()
     {
-        return $this->view()->layout('layouts::auth')->title($this->pageTitle);
+        return $this->view([
+            'pageTitle' => $this->pageTitle
+        ])->layout('layouts::auth')->title($this->pageTitle);
+    }
+
+    public function exception($e, $stopPropagation)
+    {
+        if ($e instanceof ValidationException) {
+            $this->dispatch('errors-login', errors: $this->getErrorBag());
+            $this->errorToastErrorBag();
+        }
     }
 
     #[Computed]
     public function pageTitle()
     {
-        return 'Login';
-    }
-
-    public function rendered()
-    {
-        $this->dispatch('errors-login', errors: $this->getErrorBag());
-
-        $this->errorToastErrorBag();
-        $this->resetErrorBag();
+        return 'Entrar na plataforma';
     }
 
     public function submit()
     {
-        $this->validate([
-            'email' => ['required', 'email'],
+        $this->validate();
+
+        $user = User::query()->where('email_hash', hmac_hash($this->email))->whereIn('status', ['active'])->first();
+
+        if ($user && Hash::check($this->password, $user->password)) {
+            Auth::login($user, $this->remember);
+
+            request()->session()->regenerate();
+
+            $user = Auth::user();
+
+            if (!$user->hasVerifiedEmail()) {
+                $user->sendEmailVerificationNotification();
+
+                return $this->redirectRoute('verification.notice', navigate: true);
+            }
+
+            return match ($user->role) {
+                'root', 'admin', 'customer', 'signer' => redirect()->route('panel.dashboard.index'),
+                default => tap(redirect()->route('auth.login'), function () {
+                    Auth::logout();
+                    request()->session()->invalidate();
+                    request()->session()->regenerateToken();
+                })
+            };
+        } else {
+            $this->dispatch('notify', msg: 'Dados de acesso inválidos.', type: 'error');
+        }
+    }
+
+    protected function prepareForValidation($attributes): array
+    {
+        return $attributes;
+    }
+
+    public function rules()
+    {
+        return [
+            'email' => 'required|email',
             'password' => ['required'],
-        ]);
-
-        $credentials = [
-            'email' => $this->email,
-            'password' => $this->password,
-            'status' => 'active',
         ];
-
-        if (!Auth::attempt($credentials, $this->remember)) {
-            $this->dispatch('notify', msg: "E-mail ou senha incorretos.", type: "error");
-            return;
-        }
-
-        request()->session()->regenerate();
-
-        $user = Auth::user();
-
-        if (!$user->hasVerifiedEmail()) {
-            $user->sendEmailVerificationNotification();
-
-            return $this->redirectRoute('verification.notice', navigate: true);
-        }
-
-        // só entra no painel se estiver verificado
-        return $this->redirectRoute('panel.dashboard.index', navigate: true);
     }
 
     private function errorToastErrorBag()
@@ -83,7 +101,7 @@ new class extends Component
     <div wire:loading.class="loading-box-fade" wire:keydown.enter="submit" class="relative w-full max-w-md rounded-md shadow-xl p-6 overflow-hidden border border-border bg-card">
 
         <!-- Title -->
-        <h2 class="text-xl font-semibold text-white text-center mb-4">Entrar na plataforma</h2>
+        <h2 class="text-xl font-semibold text-white text-center mb-4">{{ $pageTitle }}</h2>
 
         <!-- Form -->
         <div class="flex flex-col gap-3">
