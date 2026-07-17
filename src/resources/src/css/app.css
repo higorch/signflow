@@ -194,7 +194,7 @@
 
 .input-error::first-letter {@apply uppercase;}
 
-.input-error.full {@apply px-4 py-2 text-sm;}
+.input-error.full {@apply px-4 py-2 text-sm leading-7.5;}
 
 /* ALERTS */
 .alert {@apply relative w-full rounded-md border px-4 py-3 text-sm shadow-lg backdrop-blur-sm flex items-start gap-3;}
