@@ -333,6 +333,40 @@ document.addEventListener('alpine:init', () => {
         get hasSpecial() { return /[@$!%*#?&]/.test(this.password) },
         get valid() { return this.hasMin && this.hasLower && this.hasUpper && this.hasNumber && this.hasSpecial }
     }));
+
+    Alpine.data('countdownTimer', (cooldown) => ({
+        cooldown: cooldown,
+        interval: null,
+        init() {
+            this.$watch('cooldown', (value, oldValue) => {
+                if (value > oldValue) {
+                    this.start();
+                }
+            });
+
+            this.start();
+        },
+        start() {
+            clearInterval(this.interval);
+
+            if (this.cooldown <= 0) return;
+
+            this.interval = setInterval(() => {
+                if (this.cooldown <= 0) {
+                    clearInterval(this.interval);
+                    return;
+                }
+
+                this.cooldown--;
+            }, 1000);
+        },
+        get disabled() {
+            return this.cooldown > 0;
+        },
+        get countdown() {
+            return this.cooldown;
+        }
+    }));
 });
 
 // END IMPLEMENTATION

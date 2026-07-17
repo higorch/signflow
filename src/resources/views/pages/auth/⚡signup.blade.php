@@ -58,6 +58,12 @@ new class extends Component
             Auth::login($user);
             request()->session()->regenerate();
 
+            if (!$user->hasVerifiedEmail()) {
+                $user->sendEmailVerificationNotification();
+
+                return $this->redirectRoute('verification.notice', navigate: true);
+            }
+
             return redirect()->route('panel.dashboard.index');
         } catch (\Exception $e) {
             Log::channel('auth')->error('Erro ao registrar usuário', ['message' => $e->getMessage()]);

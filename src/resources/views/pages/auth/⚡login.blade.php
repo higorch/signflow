@@ -42,10 +42,7 @@ new class extends Component
 
         if ($user && Hash::check($this->password, $user->password)) {
             Auth::login($user, $this->remember);
-
             request()->session()->regenerate();
-
-            $user = Auth::user();
 
             if (!$user->hasVerifiedEmail()) {
                 $user->sendEmailVerificationNotification();
