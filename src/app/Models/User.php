@@ -7,7 +7,6 @@ use App\Traits\Ulid;
 use App\Traits\HasSecureHashes;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -39,7 +38,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'status',
         'cpf_cnpj',
-        'role', // root, admin, customer, signer
+        'role', // root, admin, customer, signer,
     ];
 
     /**
@@ -81,7 +80,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected static function booted(): void
     {
         static::addGlobalScope('order_by_id', function (Builder $builder) {
-            $builder->orderBy('id');
+            $builder->orderBy('ulid');
         });
     }
 
@@ -89,6 +88,19 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->morphMany(Attachment::class, 'attachable');
     }
+
+    // Lista os usuários internos vinculados ao customer. role=customer $customer->internalUsers()
+    public function internalUsers()
+    {
+        return $this->belongsToMany(User::class, 'customer_users', 'customer_id', 'user_id');
+    }
+
+    // Lista os customers aos quais o usuário interno foi vinculado. $signer->linkedCustomers()
+    public function linkedCustomers()
+    {
+        return $this->belongsToMany(User::class, 'customer_users', 'user_id', 'customer_id');
+    }
+
     public function department()
     {
         return $this->belongsTo(Department::class);

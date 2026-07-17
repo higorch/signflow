@@ -1,15 +1,25 @@
 <?php
 
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
 {
-    public function delete()
+    public function render()
     {
-        return;
+        return $this->view([
+            'pageTitle' => $this->pageTitle
+        ])->title($this->pageTitle);
+    }
+
+    #[Computed]
+    public function pageTitle()
+    {
+        return 'Signatários';
     }
 };
 ?>
+
 
 <div class="flex-1 flex flex-col">
 
@@ -25,7 +35,7 @@ new class extends Component
     {{-- CABEÇALHO --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-3">
         <div class="flex items-center gap-4">
-            <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-text-soft">Signatários</h3>
+            <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-text-soft">{{ $pageTitle }}</h3>
         </div>
         <div class="flex items-center justify-between gap-3">
             <a href="{{ route('panel.signers.create') }}" wire:navigate class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-text-soft shadow-lg transition hover:brightness-110">

@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('attachments', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->unsignedBigInteger('user_id')->nullable()->index();
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignUlid('parent_attachment_id')->nullable()->constrained('attachments')->cascadeOnUpdate()->cascadeOnDelete();
             $table->ulidMorphs('attachable');
             $table->string('disk', 20)->default('local')->index(); // local, s3
             $table->string('path', 255);

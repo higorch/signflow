@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('title_hash', 64)->index();
             $table->text('description')->nullable();
             $table->string('description_hash', 64)->nullable();
-            $table->string('status', 15)->index(); // active, blocked
+            $table->string('status', 25)->index(); // pending, awaiting-approval, approved, failed, canceled
             $table->timestamps();
         });
     }
