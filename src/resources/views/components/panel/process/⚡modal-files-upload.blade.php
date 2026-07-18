@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Process;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -43,29 +44,13 @@ new class extends Component
 
         try {
             foreach ($this->files as $file) {
-                $path = null;
                 $ext = strtolower($file->getClientOriginalExtension());
 
                 $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp']);
                 $isPdf = $ext === 'pdf';
 
-                if ($isImage) {
-                    $path = AttachmentPath::make('process/images', 'webp');
-                    $paths[] = $path;
-
-                    $image = Image::decode($file->getRealPath());
-                    $image->orient();
-                    $image = ImageWatermark::apply($image);
-
-                    Storage::disk('local')->put($path, $image->encodeUsingFormat(Format::WEBP, quality: 90));
-                }
-
-                if ($isPdf) {
-                    $path = AttachmentPath::make('process/pdf', 'pdf');
-                    $paths[] = $path;
-
-                    Storage::disk('local')->put($path, file_get_contents($file->getRealPath()));
-                }
+                $path = $isPdf ? $this->processPdf($file) : $this->processImage($file);
+                $paths[] = $path;
 
                 $this->process->attachments()->create([
                     'user_id' => Auth::id(),
@@ -126,9 +111,27 @@ new class extends Component
         ])->first();
     }
 
-    protected function processImage() {}
+    protected function processImage(UploadedFile $file): string
+    {
+        $path = AttachmentPath::make('process/images', 'webp');
 
-    protected function processPdf() {}
+        $image = Image::decode($file->getRealPath());
+        $image->orient();
+        $image = ImageWatermark::apply($image);
+
+        Storage::disk('local')->put($path, $image->encodeUsingFormat(Format::WEBP, quality: 90));
+
+        return $path;
+    }
+
+    protected function processPdf(UploadedFile $file): string
+    {
+        $path = AttachmentPath::make('process/pdf', 'pdf');
+
+        Storage::disk('local')->put($path, file_get_contents($file->getRealPath()));
+
+        return $path;
+    }
 
     protected function rules()
     {
