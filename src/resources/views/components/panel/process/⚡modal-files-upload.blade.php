@@ -126,6 +126,10 @@ new class extends Component
         ])->first();
     }
 
+    protected function processImage() {}
+
+    protected function processPdf() {}
+
     protected function rules()
     {
         return [
