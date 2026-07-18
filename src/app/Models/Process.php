@@ -70,7 +70,12 @@ class Process extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function media()
+    public function events()
+    {
+        return $this->hasMany(ProcessEvent::class);
+    }
+
+    public function processFiles()
     {
         return $this->morphMany(Attachment::class, 'attachable')->where('taxonomy', 'process-file')->where('status', 'active');
     }

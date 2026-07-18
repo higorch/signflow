@@ -13,6 +13,8 @@ class AppServiceProvider extends ServiceProvider
     {
         class_alias(\App\Services\AuthService::class, 'AuthService');
         class_alias(\App\Services\RouteService::class, 'RouteService');
+        class_alias(\App\Support\AttachmentPath::class, 'AttachmentPath');
+        class_alias(\App\Support\ImageWatermark::class, 'ImageWatermark');
     }
 
     /**

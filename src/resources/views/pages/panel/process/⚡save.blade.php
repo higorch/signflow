@@ -2,6 +2,7 @@
 
 use App\Models\Process;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -24,9 +25,18 @@ new class extends Component
         ])->title($this->pageTitle);
     }
 
+    #[On('refresh')]
+    public function refresh() {}
+
     public function mount(Process $process)
     {
-        $this->process = $process;
+        $this->process = $process->load([
+            'owner',
+            'category',
+            'events',
+            'signers',
+            'processFiles',
+        ]);
 
         $this->form = [
             'category' => $process->category_id,
@@ -104,9 +114,9 @@ new class extends Component
                     Arquivos(s)
                 </h3>
                 <div class="flex items-center gap-3">
-                    <a href="#" @click.prevent="$dispatch('open-modal-media-upload', { processId: '{{ $process->id }}' })" class="inline-flex max-md:flex-1 items-center justify-center gap-1.5 rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                    <a href="#" @click.prevent="$dispatch('open-modal-files-upload', { processId: '{{ $process->id }}' })" class="inline-flex max-md:flex-1 items-center justify-center gap-1.5 rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                         <i class="las la-plus text-[15px] text-text-muted-[#ffcf93]/70"></i>
-                        Adicione arquivos
+                        Adicionar
                     </a>
                 </div>
 
@@ -130,7 +140,7 @@ new class extends Component
                 <div class="flex items-center gap-3">
                     <a href="#" @click.prevent="$dispatch('open-modal-signer', { processId: '{{ $process->id }}' })" class="inline-flex max-md:flex-1 items-center justify-center gap-1.5 rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                         <i class="las la-plus text-[15px] text-text-muted-[#ffcf93]/70"></i>
-                        Adicione Signatários
+                        Adicionar
                     </a>
                 </div>
             </div>
@@ -170,7 +180,7 @@ new class extends Component
 
     @teleport('body')
     <div>
-        <livewire:panel.process.modal-media-upload />
+        <livewire:panel.process.modal-files-upload />
         <livewire:panel.process.modal-signer />
     </div>
     @endteleport

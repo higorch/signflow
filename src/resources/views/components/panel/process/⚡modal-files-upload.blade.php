@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\Post;
-use App\Models\PostMedia;
 use App\Models\Process;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +18,7 @@ new class extends Component
     use WithFileUploads;
 
     public ?string $processId;
-    public $media = [];
+    public $files = [];
 
     public function render()
     {
@@ -35,7 +33,7 @@ new class extends Component
         }
     }
 
-    public function updatedMedia()
+    public function updatedFiles()
     {
         $this->validate();
 
@@ -44,19 +42,15 @@ new class extends Component
         $paths = [];
 
         try {
-            if ($this->post->post_media_count >= 8) {
-                throw new \Exception(__('validation.max_media'), 422);
-            }
-
-            foreach ($this->media as $file) {
+            foreach ($this->files as $file) {
                 $path = null;
                 $ext = strtolower($file->getClientOriginalExtension());
 
                 $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp']);
-                $isMp4 = $ext === 'mp4';
+                $isPdf = $ext === 'pdf';
 
                 if ($isImage) {
-                    $path = AttachmentPath::make('creator/content/images', 'webp');
+                    $path = AttachmentPath::make('process/images', 'webp');
                     $paths[] = $path;
 
                     $image = Image::decode($file->getRealPath());
@@ -66,45 +60,30 @@ new class extends Component
                     Storage::disk('local')->put($path, $image->encodeUsingFormat(Format::WEBP, quality: 90));
                 }
 
-                if ($isMp4) {
-                    $path = AttachmentPath::make('creator/content/videos', 'mp4');
+                if ($isPdf) {
+                    $path = AttachmentPath::make('process/pdf', 'pdf');
                     $paths[] = $path;
 
                     Storage::disk('local')->put($path, file_get_contents($file->getRealPath()));
                 }
 
-                $attachment = $this->post->attachments()->create([
+                $this->process->attachments()->create([
                     'user_id' => Auth::id(),
                     'disk' => 'local',
                     'path' => $path,
-                    'extension' => $isImage ? 'webp' : 'mp4',
+                    'extension' => $isImage ? 'webp' : 'pdf',
                     'size' => $file->getSize(),
-                    'taxonomy' => 'creator-media',
-                    'status' => 'processing',
-                    'moderation_status' => 'pending',
+                    'taxonomy' => 'process',
+                    'status' => 'active',
                 ]);
-
-                $attachment->postMedia()->create([
-                    'post_id' => $this->post->id,
-                    'attachment_id' => $attachment->id,
-                    'delivery_type' => 'subscriber',
-                ]);
-
-                if ($isImage) {
-                    dispatch(new \App\Jobs\ProcessImageJob($attachment->id, 'r2_private'))->afterCommit();
-                }
-
-                if ($isMp4) {
-                    dispatch(new \App\Jobs\ProcessVideoJob($attachment->id, 'r2_private'))->afterCommit();
-                }
             }
 
             DB::commit();
 
-            $this->js('$wire.$dispatch("close-modal", { ref: "modal-media-upload" })');
+            $this->js('$wire.$dispatch("close-modal", { ref: "modal-files-upload" })');
 
-            $this->dispatch('refresh')->to('pages::hotfeed.content.save');
-            $this->dispatch('notify', msg: 'Mídias importadas com sucesso.', type: 'success');
+            $this->dispatch('refresh')->to('pages::panel.process.save');
+            $this->dispatch('notify', msg: 'Arquivos importados com sucesso.', type: 'success');
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -112,7 +91,7 @@ new class extends Component
                 Storage::disk('local')->delete($path);
             }
 
-            Log::channel('hotfeed')->error('Erro ao importar mídias', [
+            Log::channel('process')->error('Erro ao importar arquivos', [
                 'message' => $e->getMessage(),
                 'line' => $e->getLine(),
                 'file' => $e->getFile(),
@@ -123,16 +102,16 @@ new class extends Component
                 default => $this->dispatch('notify', msg: 'Não foi possível importar.', type: 'error'),
             };
         } finally {
-            foreach ($this->media ?? [] as $file) {
+            foreach ($this->files ?? [] as $file) {
                 $file->delete();
             }
 
-            $this->reset('media');
+            $this->reset('files');
         }
     }
 
-    #[On('opened.modal-media-upload')]
-    public function openeModalMediaUpload($payload)
+    #[On('opened.modal-files-upload')]
+    public function openeModalFilesUpload($payload)
     {
         $this->processId = $payload['processId'] ?? null;
     }
@@ -141,17 +120,17 @@ new class extends Component
     public function process()
     {
         return Process::where('id', $this->processId)->withCount([
-            'media'
+            'processFiles'
         ])->with([
-            'media'
+            'processFiles'
         ])->first();
     }
 
     protected function rules()
     {
         return [
-            'media' => "required",
-            'media.*' => 'file|mimes:jpg,jpeg,png,webp,pdf|max:102400'
+            'files' => "required",
+            'files.*' => 'file|mimes:jpg,jpeg,png,webp,pdf|max:102400'
         ];
     }
 
@@ -167,7 +146,7 @@ new class extends Component
 };
 ?>
 
-<div wire:ignore.self class="fixed inset-0 overflow-y-auto bg-black/60 invisible" x-data="modal('modal-media-upload')" x-bind="events" :class="{'visible': open, 'invisible': !open}">
+<div wire:ignore.self class="fixed inset-0 overflow-y-auto bg-black/60 invisible" x-data="modal('modal-files-upload')" x-bind="events" :class="{'visible': open, 'invisible': !open}">
 
     <div class="flex items-center justify-center min-h-dvh p-6" @click.self="open = true">
 

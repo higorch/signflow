@@ -10,9 +10,9 @@ document.addEventListener('alpine:init', () => {
                     payload: {}
                 });
             },
-            ['@open-modal-media-upload.window']() {
+            ['@open-modal-files-upload.window']() {
                 this.$dispatch('open-modal', {
-                    ref: 'modal-media-upload',
+                    ref: 'modal-files-upload',
                     payload: {
                         processId: this.$event.detail.processId
                     }
