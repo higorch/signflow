@@ -15,11 +15,12 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->unsignedBigInteger('owner_id');
             $table->foreign('owner_id')->references('id')->on('users')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->char('reference', 12)->unique(); // 100.000.000 (100 milhões) de combinações por ano
             $table->text('title');
             $table->string('title_hash', 64)->index();
             $table->text('description')->nullable();
             $table->string('description_hash', 64)->nullable();
-            $table->string('status', 25)->index(); // pending, awaiting-approval, approved, failed, canceled
+            $table->string('status', 25)->index(); // draft, awaiting-approval, approved, failed, canceled
             $table->timestamps();
         });
     }

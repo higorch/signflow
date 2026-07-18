@@ -49,11 +49,12 @@ if (!function_exists('formatTestingDays')) {
     }
 }
 
-if (!function_exists('yearNumberRandon')) {
-    function yearNumberRandon()
+if (!function_exists('yearNumberRandom')) {
+    function yearNumberRandom(): string
     {
-        $year = Carbon::now()->format('Y');
-        return $year . substr(strrev(rand(1, time())), 0, 6);
+        $year = now()->format('Y');
+
+        return $year . str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
     }
 }
 

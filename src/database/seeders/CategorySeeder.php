@@ -28,6 +28,11 @@ class CategorySeeder extends Seeder
                 'taxonomy' => 'process',
                 'status' => 'active',
             ],
+            [
+                'title' => 'Proposta',
+                'taxonomy' => 'process',
+                'status' => 'active',
+            ],
         ];
 
         foreach ($categories as $category) {

@@ -23,9 +23,10 @@ class Process extends Model
     protected $fillable = [
         'owner_id',
         'category_id',
+        'reference',
         'title',
         'description',
-        'status',
+        'status', // draft, awaiting-approval, approved, failed, canceled
     ];
 
     protected $hidden = [
@@ -49,6 +50,11 @@ class Process extends Model
         });
     }
 
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
+    }
+
     public function owner()
     {
         return $this->belongsTo(User::class);
@@ -62,6 +68,16 @@ class Process extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function media()
+    {
+        return $this->morphMany(Attachment::class, 'attachable')->where('taxonomy', 'process-file')->where('status', 'active');
+    }
+
+    public function scopeOwnedBy(Builder $query, int|string $ownerId): Builder
+    {
+        return $query->where('owner_id', $ownerId);
     }
 
     public function getCreatedAtAttribute(?string $value)

@@ -133,6 +133,12 @@ return [
             'level' => 'error',
         ],
 
+        'process' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/process.log'),
+            'level' => 'error',
+        ],
+
     ],
 
 ];

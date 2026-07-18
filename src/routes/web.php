@@ -29,18 +29,17 @@ Route::group(['prefix' => 'panel', 'as' => 'panel.', 'middleware' => ['user.auth
     Route::group(['prefix' => 'signers', 'as' => 'signers.'], function () {
         Route::livewire('/', 'pages::panel.signer.index')->name('index');
         Route::livewire('/create', 'pages::panel.signer.save')->name('create');
-        Route::livewire('/{ulid}/edit', 'pages::panel.signer.save')->name('edit');
+        Route::livewire('/{signer}/edit', 'pages::panel.signer.save')->name('edit');
     });
 
     Route::group(['prefix' => 'users', 'as' => 'users.'], function () {
         Route::livewire('/', 'pages::panel.user.index')->name('index');
         Route::livewire('/create', 'pages::panel.user.save')->name('create');
-        Route::livewire('/{ulid}/edit', 'pages::panel.user.save')->name('edit');
+        Route::livewire('/{user}/edit', 'pages::panel.user.save')->name('edit');
     });
 
     Route::group(['prefix' => 'processes', 'as' => 'processes.'], function () {
         Route::livewire('/', 'pages::panel.process.index')->name('index');
-        Route::livewire('/create', 'pages::panel.process.save')->name('create');
-        Route::livewire('/{ulid}/edit', 'pages::panel.process.save')->name('edit');
+        Route::livewire('/{process}/edit', 'pages::panel.process.save')->name('edit');
     });
 });

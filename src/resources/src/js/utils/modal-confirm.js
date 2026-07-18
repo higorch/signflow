@@ -17,13 +17,13 @@ window.confirmModal = function (options = {}) {
                 <span class="close absolute top-4 right-4 text-lg cursor-pointer text-gray-400 hover:text-red-500">
                     <i class="las la-times"></i>
                 </span>
-                <div class="flex items-center w-full p-4 border-b border-[#fada82]/5">
+                <div class="flex items-center w-full p-4 border-b border-border/40">
                     <p class="font-semibold text-lg text-text-soft">${title}</p>
                 </div>
                 <div class="flex flex-col grow p-4">
                     <p class="text-text-soft/70 leading-relaxed">${message}</p>
                 </div>
-                <div class="flex gap-4 w-full p-4 border-t border-[#fada82]/5">
+                <div class="flex gap-4 w-full p-4 border-t border-border/40">
                     <button class="cancel flex-1 btn-secuondary">
                         <i class="las la-times text-lg"></i>
                         Cancelar

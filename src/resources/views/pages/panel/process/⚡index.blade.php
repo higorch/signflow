@@ -1,14 +1,20 @@
 <?php
 
+use App\Models\Process;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+    use WithPagination;
+
     public function render()
     {
         return $this->view([
-            'pageTitle' => $this->pageTitle
+            'pageTitle' => $this->pageTitle,
+            'processes' => $this->processes,
         ])->title($this->pageTitle);
     }
 
@@ -16,6 +22,12 @@ new class extends Component
     public function pageTitle()
     {
         return 'Processos';
+    }
+
+    #[Computed]
+    public function processes()
+    {
+        return Process::ownedBy(Auth::id())->paginate(10);
     }
 };
 ?>
@@ -37,7 +49,7 @@ new class extends Component
             <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-text-soft">{{ $pageTitle }}</h3>
         </div>
         <div class="flex items-center justify-between gap-3">
-            <a href="{{ route('panel.processes.create') }}" wire:navigate class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-text-soft shadow-lg transition hover:brightness-110">
+            <a href="#" @click.prevent="$dispatch('open-modal-create')" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-text-soft shadow-lg transition hover:brightness-110">
                 <i class="las la-plus text-lg"></i>
                 Novo
             </a>
@@ -46,8 +58,82 @@ new class extends Component
 
     <div class="grow flex flex-col">
 
-        <p>...</p>
+        @if($processes->isNotEmpty())
+
+        {{-- TABELA --}}
+        <div class="overflow-x-auto rounded-md border border-[#2c3446] shadow-xl">
+            <table class="table-primary table-fixed">
+                <thead>
+                    <tr>
+                        <th class="sticky left-0">Title</th>
+                        <th>Referencia</th>
+                        <th class="sticky right-0 w-12 text-center"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($processes as $process)
+                    <tr wire:key="process-{{ $process->id }}">
+                        <td class="sticky left-0">{{ $process->title }}</td>
+                        <td class="whitespace-nowrap text-xs">{{ $process->reference }}</td>
+                        <td class="sticky right-0 w-12 text-center">
+                            <div x-data="dropdown('left-start', 'absolute', 5)" @click.outside="open = false" class="relative z-20">
+                                <a x-ref="referenceDropdown" href="#" class="flex items-center justify-center w-9 h-9 text-gray-500 hover:text-text-soft transition" @click.prevent="open = !open">
+                                    <i class="las la-ellipsis-v text-lg"></i>
+                                </a>
+                                <div x-ref="floatingDropdown" :class="{'flex':open,'hidden':!open}" class="absolute right-0 hidden w-40 flex-col gap-1 rounded-md border border-border bg-card p-2 shadow-lg">
+                                    <a href="{{ route('panel.processes.edit', ['process' => $process->id]) }}" wire:navigate class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-text-muted/75 transition hover:bg-card-hover hover:text-text">
+                                        <i class="las la-pen"></i>Editar
+                                    </a>
+                                    <div class="my-1 h-px bg-border"></div>
+                                    <a href="#" wire:click.prevent="delete" wire:confirm-modal="Excluir Processo | Deseja excluir o processo '{{ $process->reference }}' permanentemente?" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-text-muted/75 transition hover:bg-card-hover hover:text-text">
+                                        <i class="las la-trash"></i>Excluir
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        @if($processes->hasPages())
+        <div>
+            {{ $processes->links('layouts.pagination', data: ['scrollTo' => 'body']) }}
+        </div>
+        @endif
+
+        @else
+
+        <div class="flex-1 flex flex-col">
+
+            <div class="grow flex flex-col justify-center gap-4 md:gap-5 rounded-md border border-border/50 bg-card-hover/50 p-4 backdrop-blur-sm">
+                <div class="flex flex-col gap-3 items-center justify-center">
+                    <div class="flex items-center justify-center size-8 md:size-10 rounded-full border border-primary/20 bg-primary/10">
+                        <i class="las la-file-signature text-xl md:text-2xl text-primary"></i>
+                    </div>
+                    <div class="flex flex-col gap-0.5">
+                        <p class="text-center text-sm font-medium text-text">
+                            Nenhum processo cadastrado.
+                        </p>
+                    </div>
+                </div>
+                <a href="#" @click.prevent="$dispatch('open-modal-create')" class="inline-flex w-fit self-center items-center justify-center gap-1.5 rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                    <i class="las la-plus text-[15px] text-text-muted-[#ffcf93]/70"></i>
+                    Adicione o primeiro
+                </a>
+            </div>
+
+        </div>
+
+        @endif
 
     </div>
+
+    @teleport('body')
+    <div>
+        <livewire:panel.process.modal-create />
+    </div>
+    @endteleport
 
 </div>

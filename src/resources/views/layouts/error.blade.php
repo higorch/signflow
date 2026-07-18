@@ -40,7 +40,7 @@
             </p>
 
             <div class="mt-8">
-                <a href="{{ route('auth.login') }}" class="inline-flex items-center gap-2 rounded-xl bg-primary-hover shadow-[0_10px_25px_rgba(255,130,40,0.18)] transition-all duration-300 hover:brightness-110">
+                <a href="{{ route('auth.login') }}" class="inline-flex btn-primary">
                     <i class="las la-home text-lg"></i>
                     <span>Voltar para o início</span>
                 </a>
