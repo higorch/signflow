@@ -295,7 +295,7 @@
 ========================= */
 @layer utilities {
    .loading-input {@apply relative;}
-   .loading-input::after {@apply content-[''] absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-[#e3e3e3]/60 border-t-transparent rounded-full animate-spin;}
+   .loading-input::after {@apply content-[''] absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-border/60 border-t-transparent rounded-full animate-spin;}
    .loading-input.loading-compact::after {@apply right-2 w-3.5 h-3.5;}
 
    .capitalize-first:first-letter {@apply uppercase;}

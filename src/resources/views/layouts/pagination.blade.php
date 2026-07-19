@@ -11,9 +11,9 @@ $scrollIntoViewJsSnippet = ($scrollTo !== false)
 @endphp
 
 @if ($paginator->hasPages())
-    <div class="flex flex-col md:flex-row justify-between items-center gap-3">
+    <div class="flex flex-col items-center justify-between gap-3 md:flex-row">
 
-        <span class="mb-2 md:mb-0 text-sm text-[#fff0d7]/50">
+        <span class="text-sm text-text-muted">
             {!! __('pagination.Showing') !!}
             {{ $paginator->firstItem() }}
             {!! __('pagination.to') !!}
@@ -22,42 +22,54 @@ $scrollIntoViewJsSnippet = ($scrollTo !== false)
             {{ $paginator->total() }}
             {!! __('pagination.results') !!}
         </span>
-    
-        <div class="flex items-center">
-    
+
+        <div class="flex items-center gap-2">
+
             @if ($paginator->onFirstPage())
-                <span class="mr-3 text-xs cursor-not-allowed text-[#434050]"><i class="las la-angle-left"></i></span>
+                <span class="flex size-7 items-center justify-center rounded border border-border bg-input text-placeholder cursor-not-allowed">
+                    <i class="las la-angle-left"></i>
+                </span>
             @else
-                <a href="#" wire:click.prevent="previousPage('{{ $paginator->getPageName() }}')" x-on:click="{{ $scrollIntoViewJsSnippet }}" wire:loading.attr="disabled" dusk="previousPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}.before" class="mr-3 text-xs text-[#CBD5E1] hover:text-white transition cursor-pointer"><i class="las la-angle-left"></i></a>
+                <a href="#" wire:click.prevent="previousPage('{{ $paginator->getPageName() }}')" x-on:click="{{ $scrollIntoViewJsSnippet }}" wire:loading.attr="disabled" dusk="previousPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}.before" class="flex size-7 items-center justify-center rounded border border-border bg-input text-text-muted transition hover:border-border-hover hover:bg-input-focus hover:text-text">
+                    <i class="las la-angle-left"></i>
+                </a>
             @endif
 
-            <div class="flex items-stretch gap-1">
-            @foreach ($elements as $element)
+            <div class="flex items-center gap-1">
+                @foreach ($elements as $element)
 
-                @if (is_string($element))
-                    <span class="px-2 py-1 text-sm rounded-sm text-[#CBD5E1] cursor-no-drop">{{ $element }}</span>
-                @endif
+                    @if (is_string($element))
+                        <span class="px-1.5 text-xs text-placeholder">{{ $element }}</span>
+                    @endif
 
-                @if (is_array($element))
-                    @foreach ($element as $page => $url)
-                        @if ($page == $paginator->currentPage())
-                            <span class="px-2 py-1 text-sm cursor-no-drop rounded-sm border border-white/10 bg-white/10 text-[#fff0d7] font-semibold">{{ $page }}</span>
-                        @else
-                            <a href="#" wire:click.prevent="gotoPage({{ $page }}, '{{ $paginator->getPageName() }}')" x-on:click="{{ $scrollIntoViewJsSnippet }}" wire:loading.attr="disabled" dusk="gotoPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}.{{ $page }}" class="px-2 py-1 text-sm rounded-sm text-[#434050] hover:text-[#fff0d7] hover:bg-white/10 transition cursor-pointer">{{ $page }}</a>
-                        @endif
-                    @endforeach
-                @endif
+                    @if (is_array($element))
+                        @foreach ($element as $page => $url)
+                            @if ($page == $paginator->currentPage())
+                                <span class="flex h-7 min-w-7 items-center justify-center rounded border border-primary bg-primary px-2 text-xs font-semibold text-white">
+                                    {{ $page }}
+                                </span>
+                            @else
+                                <a href="#" wire:click.prevent="gotoPage({{ $page }}, '{{ $paginator->getPageName() }}')" x-on:click="{{ $scrollIntoViewJsSnippet }}" wire:loading.attr="disabled" dusk="gotoPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}.{{ $page }}" class="flex h-7 min-w-7 items-center justify-center rounded border border-border bg-input px-2 text-xs text-text-muted transition hover:border-border-hover hover:bg-input-focus hover:text-text">
+                                    {{ $page }}
+                                </a>
+                            @endif
+                        @endforeach
+                    @endif
 
-            @endforeach
+                @endforeach
             </div>
-    
+
             @if ($paginator->hasMorePages())
-                <a href="#" wire:click.prevent="nextPage('{{ $paginator->getPageName() }}')" x-on:click="{{ $scrollIntoViewJsSnippet }}" wire:loading.attr="disabled" dusk="nextPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}.after" class="ml-3 text-xs text-[#CBD5E1] hover:text-white transition cursor-pointer"><i class="las la-angle-right"></i></a>               
+                <a href="#" wire:click.prevent="nextPage('{{ $paginator->getPageName() }}')" x-on:click="{{ $scrollIntoViewJsSnippet }}" wire:loading.attr="disabled" dusk="nextPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}.after" class="flex size-7 items-center justify-center rounded border border-border bg-input text-text-muted transition hover:border-border-hover hover:bg-input-focus hover:text-text">
+                    <i class="las la-angle-right"></i>
+                </a>
             @else
-                <span class="ml-3 text-xs cursor-not-allowed text-[#434050]"><i class="las la-angle-right"></i></span>
+                <span class="flex size-7 items-center justify-center rounded border border-border bg-input text-placeholder cursor-not-allowed">
+                    <i class="las la-angle-right"></i>
+                </span>
             @endif
-    
+
         </div>
-    
+
     </div>
 @endif

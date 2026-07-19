@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\User;
 use App\Models\Process;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -14,15 +16,14 @@ new class extends Component
     public ?string $processId = null;
 
     public array $form = [
-        'category' => '',
-        'title' => '',
+        'email' => '',
+        'name' => '',
+        'cpf_cnpj' => '',
     ];
 
     public function render()
     {
-        return $this->view([
-            'process' => $this->process
-        ]);
+        return $this->view();
     }
 
     public function exception($e, $stopPropagation)
@@ -30,6 +31,23 @@ new class extends Component
         if ($e instanceof ValidationException) {
             $this->dispatch('errors-modal-process-signer', errors: $this->getErrorBag());
             $this->errorToastErrorBag();
+        }
+    }
+
+    public function updatedFormEmail($value)
+    {
+        $this->resetErrorBag('form.email');
+
+        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) return null;
+
+        $signer = User::where('email_hash', hmac_hash($value))->first();
+
+        if ($signer) {
+            $this->form = [
+                'email' => $signer->email,
+                'name' => $signer->name,
+                'cpf_cnpj' => maskFormat('cpf_cnpj', $signer->cpf_cnpj),
+            ];
         }
     }
 
@@ -47,34 +65,68 @@ new class extends Component
         return Process::where('id', $this->processId)->first();
     }
 
+    #[Computed]
+    public function signer()
+    {
+        if (!filter_var(data_get($this->form, 'email'), FILTER_VALIDATE_EMAIL)) return null;
+
+        return User::where('email_hash', hmac_hash(data_get($this->form, 'email')))->first();
+    }
+
     public function submit()
     {
         $this->validate();
 
         try {
-            $title = preg_replace('/\p{So}+/u', '', data_get($this, 'form.title'));
+            DB::transaction(function () {
+                $signer = $this->signer;
 
-            $process = Process::create([
-                'owner_id' => Auth::id(),
-                'category_id' => data_get($this, 'form.category'),
-                'reference' => yearNumberRandom(),
-                'title' => $title,
-                'status' => 'draft'
-            ]);
+                $data = [
+                    'email' => $this->form['email'],
+                    'name' => $this->form['name'],
+                    'cpf_cnpj' => sanitizeSpecialCharacters($this->form['cpf_cnpj'], true),
+                    'status' => $signer ? $signer->status : 'active'
+                ];
 
-            session()->flash('success', 'Processo criado com sucesso, agora configure o restante.');
+                if ($signer) {
+                    $signer->update($data);
+                } else {
+                    $data['role'] = 'signer';
+                    $data['password'] = Str::password(
+                        length: 16,
+                        letters: true,
+                        numbers: true,
+                        symbols: true,
+                        spaces: false
+                    );
 
-            return $this->redirectRoute('panel.processes.edit', parameters: [
-                'process' => $process->id
-            ], navigate: true);
-        } catch (\Exception $e) {
-            Log::channel('process')->error('Erro ao criar processo', [
+                    $signer = User::create($data);
+                }
+
+                $processSigner = $this->process->signers()->firstOrCreate([
+                    'user_id' => $signer->id,
+                    'status' => 'awaiting-signature',
+                ]);
+
+                if ($processSigner->wasRecentlyCreated) {
+                    $this->dispatch('notify', msg: 'Signatário adicionado com sucesso.', type: 'success');
+                } else {
+                    $this->dispatch('notify', msg: 'Signatário já está vinculado a este processo.', type: 'info');
+                }
+            });
+
+            $this->reset('form');
+
+            $this->js('$wire.$dispatch("close-modal", { ref: "modal-process-signer" })');
+            $this->dispatch('refresh')->to('pages::panel.process.save');
+        } catch (\Throwable $e) {
+            Log::channel('process')->error('Erro ao adicionar signatário', [
                 'message' => $e->getMessage(),
                 'line' => $e->getLine(),
                 'file' => $e->getFile(),
             ]);
 
-            $this->dispatch('notify', msg: "Não foi possível criar.", type: "error");
+            $this->dispatch('notify', msg: 'Não foi possível adicionar.', type: 'error');
         }
     }
 
@@ -83,17 +135,30 @@ new class extends Component
         return $attributes;
     }
 
-    protected function rules()
+    protected function rules(): array
     {
+        $signer = $this->signer;
+
         return [
-            'form.category' => [
+            'form.email' => [
                 'required',
-                Rule::exists('categories', 'id')->where('taxonomy', 'process'),
+                'email:filter',
+                function ($attribute, $value, $fail) use ($signer) {
+                    if (! $value) return;
+
+                    $user = User::where('email_hash', hmac_hash($value))->first();
+
+                    if ($user && (! $signer || $user->isNot($signer))) {
+                        $fail(__('validation.unique'));
+                    }
+                },
             ],
-            'form.title' => [
+            'form.name' => [
                 'min:5',
-                'max:120',
-                'required',
+                'max:40',
+                Rule::requiredIf(function () {
+                    return filter_var(data_get($this->form, 'email'), FILTER_VALIDATE_EMAIL);
+                }),
                 function ($attribute, $value, $fail) {
                     $value = trim($value);
 
@@ -102,16 +167,32 @@ new class extends Component
                         return;
                     }
 
-                    $parts = preg_split('/\s+/', $value);
-
-                    foreach ($parts as $part) {
+                    foreach (preg_split('/\s+/', $value) as $part) {
                         if (! preg_match('/^[A-Za-zÀ-ÿ]+$/u', $part)) {
                             $fail(__('validation.sem_caracteres'));
                             return;
                         }
                     }
-                }
-            ]
+                },
+            ],
+            'form.cpf_cnpj' => [
+                'cpf_ou_cnpj',
+                Rule::requiredIf(function () {
+                    return filter_var(data_get($this->form, 'email'), FILTER_VALIDATE_EMAIL);
+                }),
+                function ($attribute, $value, $fail) use ($signer) {
+                    if (!$value) return;
+
+                    $user = User::where(
+                        'cpf_cnpj_hash',
+                        hmac_hash($value, true, true)
+                    )->first();
+
+                    if ($user && (! $signer || $user->isNot($signer))) {
+                        $fail(__('validation.unique'));
+                    }
+                },
+            ],
         ];
     }
 
@@ -131,7 +212,7 @@ new class extends Component
 
     <div class="flex items-center justify-center min-h-dvh p-6" @click.self="open = true">
 
-        <div wire:loading.class="loading-box-fade" class="relative w-full max-w-2xl rounded-md shadow-lg bg-card" x-show="open" x-transition>
+        <div wire:loading.class="loading-box-fade" wire:target="submit" class="relative w-full max-w-2xl rounded-md shadow-lg bg-card" x-show="open" x-transition>
 
             <span class="absolute top-4 right-4 text-lg cursor-pointer text-text-muted hover:text-red-500" @click.prevent="open = false">
                 <i class="las la-times"></i>
@@ -145,17 +226,37 @@ new class extends Component
             {{-- BODY --}}
             <div wire:keydown.enter="submit" class="flex flex-col grow p-4">
 
-                <div class="grid grid-cols-12 gap-6">
+                <div class="grid grid-cols-12 gap-3">
 
-                    {{-- TITLE --}}
-                    <div class="relative col-span-full md:col-span-12 flex flex-col gap-2">
-                        <label class="label-input-basic">Título</label>
-                        <div class="relative">
-                            <input type="text" wire:model="form.title" class="input-basic">
-                            <x-global.limit-input :limit="120" :model="'form.title'" :stop="true" :align="'center'" />
+                    {{-- EMAIL --}}
+                    <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
+                        <label class="label-input-basic">E-mail</label>
+                        <div wire:loading.class="loading-input" wire:target="form.email">
+                            <input type="email" wire:model.live.debounce.500ms="form.email" class="input-basic">
                         </div>
-                        @error('form.title') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
+                        @error('form.email') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
                     </div>
+
+                    @if(filter_var($this->form['email'], FILTER_VALIDATE_EMAIL))
+
+                    {{-- NAME --}}
+                    <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
+                        <label class="label-input-basic">Nome</label>
+                        <div class="relative">
+                            <input type="text" class="input-basic" wire:model="form.name">
+                            <x-global.limit-input :limit="40" :model="'form.name'" :stop="true" :align="'center'" />
+                        </div>
+                        @error('form.name') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
+                    </div>
+
+                    {{-- CPF/CNPJ --}}
+                    <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
+                        <label class="label-input-basic">CPF / CNPJ</label>
+                        <input type="text" wire:model="form.cpf_cnpj" class="input-basic" x-data="mask" data-inputmask="'mask': ['999.999.999-99', '99.999.999/9999-99'], 'keepStatic': true">
+                        @error('form.cpf_cnpj') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
+                    </div>
+
+                    @endif
 
                 </div>
 

@@ -60,11 +60,21 @@ new class extends Component
         ];
     }
 
-    #[On('sort-files')]
+    #[On('sort-process-files')]
     public function reorderFiles(?array $ids)
     {
         collect($ids)->unique()->values()->each(function ($id, $index) {
             $this->process->processFiles()->where('id', $id)->update([
+                'sort' => $index
+            ]);
+        });
+    }
+
+    #[On('sort-process-signers')]
+    public function reorderSigners(?array $ids)
+    {
+        collect($ids)->unique()->values()->each(function ($id, $index) {
+            $this->process->signers()->where('id', $id)->update([
                 'sort' => $index
             ]);
         });
@@ -102,6 +112,9 @@ new class extends Component
 
         return $this->process
             ->signers()
+            ->with([
+                'user'
+            ])
             ->orderByRaw('CASE WHEN sort IS NULL THEN 1 ELSE 0 END')
             ->orderBy('sort')
             ->orderBy('created_at')
@@ -123,6 +136,31 @@ new class extends Component
     public function removeFile(?string $id)
     {
         try {
+            $attachment = Attachment::findOrFail($id);
+
+            if (Storage::disk($attachment->disk)->exists($attachment->path)) {
+                Storage::disk($attachment->disk)->delete($attachment->path);
+            }
+
+            $attachment->delete();
+
+            $this->dispatch('notify', msg: 'Removido com sucesso.', type: 'success');
+        } catch (\Throwable $e) {
+            Log::channel('process')->error('Erro ao remover arquivo', [
+                'attachment_id' => $id,
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            $this->dispatch('notify', msg: 'Erro ao remover.', type: 'error');
+        }
+    }
+
+    public function removeSigner(?string $id)
+    {
+        try {
+            dd($id);
             $attachment = Attachment::findOrFail($id);
 
             if (Storage::disk($attachment->disk)->exists($attachment->path)) {
@@ -249,10 +287,10 @@ new class extends Component
     <div class="flex flex-col grow gap-4">
 
         {{-- FORMULÁRIO --}}
-        <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-4 rounded-md p-4 border border-border bg-card shadow-xl">
+        <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-3 rounded-md p-4 border border-border bg-card shadow-xl">
 
             {{-- CATEGORY --}}
-            <div class="relative col-span-full md:col-span-12 flex flex-col gap-2">
+            <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
                 <label class="label-input-basic">Categoria</label>
                 <select x-data="choices($wire.entangle('form.category'), '---', '', 'auto', false)">
                     @foreach($categories as $category)
@@ -263,7 +301,7 @@ new class extends Component
             </div>
 
             {{-- TITLE --}}
-            <div class="relative col-span-full md:col-span-12 flex flex-col gap-2">
+            <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
                 <label class="label-input-basic">Título</label>
                 <div class="relative">
                     <input type="text" wire:model="form.title" class="input-basic">
@@ -273,7 +311,7 @@ new class extends Component
             </div>
 
             {{-- DESCRIPTION --}}
-            <div class="relative col-span-full md:col-span-12 flex flex-col gap-2">
+            <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
                 <label class="label-input-basic">Descrição</label>
                 <div class="relative">
                     <textarea wire:model="form.description" class="input-basic min-h-30 resize-none"></textarea>
@@ -284,7 +322,7 @@ new class extends Component
         </div>
 
         {{-- FILES --}}
-        <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-4 rounded-md p-4 border border-border bg-card shadow-xl">
+        <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-3 rounded-md p-4 border border-border bg-card shadow-xl">
 
             <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <h3 class="font-semibold text-xs uppercase tracking-wide text-text-muted/80">
@@ -300,7 +338,7 @@ new class extends Component
             </div>
 
             @if($processFiles->isNotEmpty())
-            <div x-data="sortable('files')" class="col-span-full md:col-span-12 flex flex-col gap-4">
+            <div x-data="sortable('process-files')" class="col-span-full md:col-span-12 flex flex-col gap-4">
 
                 @foreach($processFiles as $file)
 
@@ -331,12 +369,12 @@ new class extends Component
                             <span class="flex items-center gap-1">
                                 @switch($file->extension)
                                 @case('pdf')
-                                <i class="las la-file-pdf text-sm text-red-500"></i>
+                                <i class="las la-file-alt text-sm text-red-500"></i>
                                 <span class="text-xs text-text">PDF</span>
                                 @break
 
                                 @default
-                                <i class="las la-file-image text-sm text-text-muted"></i>
+                                <i class="las la-image text-sm text-text-muted"></i>
                                 <span class="text-xs text-text">Imagem</span>
                                 @endswitch
                             </span>
@@ -373,7 +411,7 @@ new class extends Component
         </div>
 
         {{-- SIGNERS --}}
-        <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-4 rounded-md p-4 border border-border bg-card shadow-xl">
+        <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-3 rounded-md p-4 border border-border bg-card shadow-xl">
 
             <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <h3 class="font-semibold text-xs uppercase tracking-wide text-text-muted/80">
@@ -387,17 +425,56 @@ new class extends Component
                 </div>
             </div>
 
+            @if($signers->isNotEmpty())
+            <div class="col-span-full md:col-span-12 flex flex-col gap-4">
+
+                {{-- TABELA --}}
+                <div class="overflow-x-auto rounded-md border border-[#2c3446] shadow-xl">
+                    <table class="table-primary table-fixed">
+                        <thead>
+                            <tr>
+                                <th class="sticky left-0">Nome</th>
+                                <th>E-mail</th>
+                                <th>Assinou</th>
+                                <th class="sticky right-0 w-12 text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody x-data="sortable('process-signers')">
+                            @foreach($signers as $signer)
+                            <tr data-sortable-item="{{ $signer->id }}" wire:key="signer-{{ $signer->id }}">
+                                <td class="sticky left-0">{{ $signer->user->name }}</td>
+                                <td class="whitespace-nowrap text-xs">{{ $signer->user->email }}</td>
+                                <td class="whitespace-nowrap text-xs">Não</td>
+                                <td class="sticky right-0 w-12 text-center">
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" @click.prevent data-sortable-handle title="Arrastar" class="inline-flex items-center justify-center rounded-md cursor-grab border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                                            <i class="las la-arrows-alt text-base"></i>
+                                        </button>
+                                        <a href="#" wire:click.prevent="removeSigner('{{ $signer->id }}')" wire:confirm-modal="Excluir Signatário | Deseja realmente excluir o signatário permanentemente?" title="Remover" class="inline-flex items-center justify-center rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                                            <i class="las la-times text-base"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+            @else
             <div class="col-span-full md:col-span-12 alert alert-info flex items-center justify-between">
                 <div class="flex items-start gap-2">
                     <div class="alert-icon"><i class="las la-info-circle"></i></div>
                     <div class="alert-content leading-normal">Nenhum Signatário.</div>
                 </div>
             </div>
+            @endif
 
         </div>
 
         {{-- HISTORY --}}
-        <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-4 rounded-md p-4 border border-border bg-card shadow-xl">
+        <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-3 rounded-md p-4 border border-border bg-card shadow-xl">
 
             <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <h3 class="font-semibold text-xs uppercase tracking-wide text-text-muted/80">

@@ -103,7 +103,7 @@ new class extends Component
             ],
             'form.email' => [
                 'required',
-                'email',
+                'email:filter',
                 function ($attribute, $value, $fail) {
                     if (blank($value)) return;
                     if (User::where('email_hash', hmac_hash($value))->exists()) {
@@ -183,8 +183,11 @@ new class extends Component
             <div>
                 <label class="label-input-basic text-white" for="name">Nome</label>
                 <div class="relative">
-                    <i class="las la-user absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm"></i>
-                    <input type="text" class="input-basic pl-9" wire:model="form.name" id="name">
+                    <div class="relative">
+                        <i class="las la-user absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm"></i>
+                        <input type="text" class="input-basic pl-9" wire:model="form.name" id="name">
+                        <x-global.limit-input :limit="40" :model="'form.name'" :stop="true" :align="'center'" />
+                    </div>
                     @error('form.name') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
                 </div>
             </div>

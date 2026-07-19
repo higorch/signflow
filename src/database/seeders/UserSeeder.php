@@ -52,7 +52,6 @@ class UserSeeder extends Seeder
                 'higor@mail.test' => \App\Models\Department::where('title', 'Tecnologia da Informação')->value('id'),
                 'guilherme@mail.test' => \App\Models\Department::where('title', 'Diretoria')->value('id'),
                 'haaland@mail.test' => \App\Models\Department::where('title', 'Jurídico')->value('id'),
-                'vozinha@mail.test' => \App\Models\Department::where('title', 'Recursos Humanos')->value('id'),
                 default => null,
             };
 

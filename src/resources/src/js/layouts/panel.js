@@ -38,8 +38,12 @@ document.addEventListener('alpine:init', () => {
                     componentName
                 } = this.$event.detail;
 
-                if ('files' === componentName) {
-                    this.$dispatch('sort-files', { ids: ids });
+                if ('process-files' === componentName) {
+                    this.$dispatch('sort-process-files', { ids: ids });
+                }
+
+                if ('process-signers' === componentName) {
+                    this.$dispatch('sort-process-signers', { ids: ids });
                 }
             }
         },
