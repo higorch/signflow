@@ -56,12 +56,14 @@ new class extends Component
                 $path = $isPdf ? $this->processPdf($file) : $this->processImage($file);
                 $paths[] = $path;
 
+                $size = Storage::disk('local')->size($path);
+
                 $this->process->attachments()->create([
                     'user_id' => Auth::id(),
                     'disk' => 'local',
                     'path' => $path,
                     'extension' => $isImage ? 'webp' : 'pdf',
-                    'size' => $file->getSize(),
+                    'size' => $size,
                     'taxonomy' => 'process',
                     'status' => 'active',
                 ]);

@@ -77,7 +77,7 @@ class Process extends Model
 
     public function processFiles()
     {
-        return $this->morphMany(Attachment::class, 'attachable')->where('taxonomy', 'process-file')->where('status', 'active');
+        return $this->morphMany(Attachment::class, 'attachable')->where('taxonomy', 'process')->where('status', 'active');
     }
 
     public function scopeOwnedBy(Builder $query, int|string $ownerId): Builder

@@ -65,8 +65,8 @@ new class extends Component
             <table class="table-primary table-fixed">
                 <thead>
                     <tr>
-                        <th class="sticky left-0">Title</th>
-                        <th>Referencia</th>
+                        <th class="sticky left-0">Título</th>
+                        <th>Ref.</th>
                         <th class="sticky right-0 w-12 text-center"></th>
                     </tr>
                 </thead>
