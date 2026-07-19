@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('password');
 
             // privados sensiveis
-            $table->string('status', 15)->index(); // active, blocked
+            $table->string('status', 15)->index(); // active, disabled
             $table->text('cpf_cnpj')->nullable();
             $table->string('cpf_cnpj_hash', 64)->unique()->index()->nullable();
             $table->text('role')->nullable(); // root, admin, customer, signer

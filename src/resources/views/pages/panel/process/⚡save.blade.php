@@ -29,6 +29,8 @@ new class extends Component
         return $this->view([
             'pageTitle' => $this->pageTitle,
             'categories' => $this->categories,
+            'processFiles' => $this->processFiles,
+            'signers' => $this->signers
         ])->title($this->pageTitle);
     }
 
@@ -48,9 +50,7 @@ new class extends Component
         $this->process = $process->load([
             'owner',
             'category',
-            'events',
-            'signers',
-            'processFiles',
+            'events'
         ]);
 
         $this->form = [
@@ -58,6 +58,16 @@ new class extends Component
             'title' => $process->title,
             'description' => $process->description,
         ];
+    }
+
+    #[On('sort-files')]
+    public function reorderFiles(?array $ids)
+    {
+        collect($ids)->unique()->values()->each(function ($id, $index) {
+            $this->process->processFiles()->where('id', $id)->update([
+                'sort' => $index
+            ]);
+        });
     }
 
     #[Computed]
@@ -70,6 +80,32 @@ new class extends Component
     public function categories()
     {
         return Category::where('taxonomy', 'process')->get();
+    }
+
+    #[Computed]
+    public function processFiles()
+    {
+        if (blank(data_get($this->process, 'processFiles'))) return collect();
+
+        return $this->process
+            ->processFiles()
+            ->orderByRaw('CASE WHEN sort IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('sort')
+            ->orderBy('created_at')
+            ->get();
+    }
+
+    #[Computed]
+    public function signers()
+    {
+        if (blank(data_get($this->process, 'signers'))) return collect();
+
+        return $this->process
+            ->signers()
+            ->orderByRaw('CASE WHEN sort IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('sort')
+            ->orderBy('created_at')
+            ->get();
     }
 
     public function submit()
@@ -255,7 +291,7 @@ new class extends Component
                     Arquivos(s)
                 </h3>
                 <div class="flex items-center gap-3">
-                    <a href="#" @click.prevent="$dispatch('open-modal-files-upload', { processId: '{{ $process->id }}' })" class="inline-flex max-md:flex-1 items-center justify-center gap-1.5 rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                    <a href="#" @click.prevent="$dispatch('open-modal-process-files-upload', { processId: '{{ $process->id }}' })" class="inline-flex max-md:flex-1 items-center justify-center gap-1.5 rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                         <i class="las la-plus text-[15px] text-text-muted-[#ffcf93]/70"></i>
                         Adicionar
                     </a>
@@ -263,17 +299,17 @@ new class extends Component
 
             </div>
 
-            @if($process->processFiles->isNotEmpty())
-            <div class="col-span-full md:col-span-12 flex flex-col gap-4">
+            @if($processFiles->isNotEmpty())
+            <div x-data="sortable('files')" class="col-span-full md:col-span-12 flex flex-col gap-4">
 
-                @foreach($process->processFiles as $file)
+                @foreach($processFiles as $file)
 
                 @php
                 $isPdf = $file->extension === 'pdf';
                 $url = $file->signed_url;
                 @endphp
 
-                <div wire:key="file-{{ $file->id }}" wire:loading.class="loading-box-fade" wire:target="removeFile('{{ $file->id }}')" class="group flex justify-between gap-3 p-3 rounded-md border border-border/25 bg-card">
+                <div data-sortable-item="{{ $file->id }}" wire:key="file-{{ $file->id }}" wire:loading.class="loading-box-fade" wire:target="removeFile('{{ $file->id }}')" class="group flex justify-between gap-3 p-3 rounded-md border border-border/25 bg-card">
 
                     <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" class="group relative flex h-18 w-26 items-center justify-center overflow-hidden rounded-md border border-border/85 bg-surface-active transition-all duration-200 group-hover:border-primary group-hover:shadow-md md:h-20 md:w-32">
                         @if($isPdf)
@@ -309,7 +345,7 @@ new class extends Component
                         <div class="flex items-center justify-between gap-3">
                             <span class="text-xs text-text-muted">{{ maskFormat('file_size', $file->size) }}</span>
                             <div class="flex items-center gap-3">
-                                <button type="button" @click.prevent title="Arrastar" class="inline-flex items-center justify-center rounded-md cursor-grab border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                                <button type="button" @click.prevent data-sortable-handle title="Arrastar" class="inline-flex items-center justify-center rounded-md cursor-grab border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                                     <i class="las la-arrows-alt text-base"></i>
                                 </button>
                                 <a href="#" wire:click.prevent="removeFile('{{ $file->id }}')" wire:confirm-modal="Excluir arquivo | Deseja realmente excluir o arquivo permanentemente?" title="Remover" class="inline-flex items-center justify-center rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
@@ -344,7 +380,7 @@ new class extends Component
                     Signatário(s)
                 </h3>
                 <div class="flex items-center gap-3">
-                    <a href="#" @click.prevent="$dispatch('open-modal-signer', { processId: '{{ $process->id }}' })" class="inline-flex max-md:flex-1 items-center justify-center gap-1.5 rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                    <a href="#" @click.prevent="$dispatch('open-modal-process-signer', { processId: '{{ $process->id }}' })" class="inline-flex max-md:flex-1 items-center justify-center gap-1.5 rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                         <i class="las la-plus text-[15px] text-text-muted-[#ffcf93]/70"></i>
                         Adicionar
                     </a>
@@ -397,3 +433,27 @@ new class extends Component
     @endteleport
 
 </div>
+
+<style>
+    /* item arrastando (placeholder) */
+    [data-sortable-item].draggable-source--is-dragging {
+        opacity: 0.20;
+        transform: scale(0.98);
+    }
+
+    /* esconder handle */
+    [data-sortable-item].draggable-source--is-dragging .drag-handle {
+        display: none !important;
+    }
+
+    /* clone */
+    .draggable-mirror {
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    /* hover de drop (usando sua cor principal) */
+    [data-sortable-item].draggable-over {
+        border: 2px dashed rgba(26, 218, 209, 0.7);
+    }
+</style>

@@ -26,7 +26,7 @@ new class extends Component
     public function exception($e, $stopPropagation)
     {
         if ($e instanceof ValidationException) {
-            $this->dispatch('errors-modal-create', errors: $this->getErrorBag());
+            $this->dispatch('errors-modal-process-create', errors: $this->getErrorBag());
             $this->errorToastErrorBag();
         }
     }
@@ -117,18 +117,18 @@ new class extends Component
 };
 ?>
 
-<div wire:ignore.self class="fixed inset-0 overflow-y-auto bg-black/60 invisible" x-data="modal('modal-create')" x-bind="events" :class="{'visible': open, 'invisible': !open}">
+<div wire:ignore.self class="fixed inset-0 overflow-y-auto bg-black/60 invisible" x-data="modal('modal-process-create')" x-bind="events" :class="{'visible': open, 'invisible': !open}">
 
     <div class="flex items-center justify-center min-h-dvh p-6" @click.self="open = true">
 
         <div wire:loading.class="loading-box-fade" class="relative w-full max-w-2xl rounded-md shadow-lg bg-card" x-show="open" x-transition>
 
-            <span class="absolute top-4 right-4 text-lg cursor-pointer text-gray-400 hover:text-red-500" @click.prevent="open = false">
+            <span class="absolute top-4 right-4 text-lg cursor-pointer text-text-muted hover:text-red-500" @click.prevent="open = false">
                 <i class="las la-times"></i>
             </span>
 
             {{-- HEADER --}}
-            <div class="flex items-center w-full p-4 border-b border-[#fada82]/5">
+            <div class="flex items-center w-full p-4 border-b border-border/40">
                 <p class="font-semibold text-lg text-text-soft">Novo processo</p>
             </div>
 

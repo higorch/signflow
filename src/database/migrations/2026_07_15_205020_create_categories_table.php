@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->string('title', 80);
-            $table->string('status', 15)->index(); // active, blocked
+            $table->string('status', 15)->index(); // active, disabled
             $table->string('taxonomy', 80); // process, etc.
             $table->timestamps();
         });

@@ -4,19 +4,43 @@ document.addEventListener('alpine:init', () => {
         menuOpen: localStorage.getItem('menuOpen') !== 'false',
         mobileMenu: false,
         events: {
-            ['@open-modal-create.window']() {
+            ['@open-modal-process-create.window']() {
                 this.$dispatch('open-modal', {
-                    ref: 'modal-create',
+                    ref: 'modal-process-create',
                     payload: {}
                 });
             },
-            ['@open-modal-files-upload.window']() {
+            ['@open-modal-process-files-upload.window']() {
                 this.$dispatch('open-modal', {
-                    ref: 'modal-files-upload',
+                    ref: 'modal-process-files-upload',
                     payload: {
                         processId: this.$event.detail.processId
                     }
                 });
+            },
+            ['@open-modal-process-signer.window']() {
+                this.$dispatch('open-modal', {
+                    ref: 'modal-process-signer',
+                    payload: {
+                        processId: this.$event.detail.processId
+                    }
+                });
+            },
+            ['@open-modal-user-filter.window']() {
+                this.$dispatch('open-modal', {
+                    ref: 'modal-user-filter',
+                    payload: {}
+                });
+            },
+            ['@sortable:stop.window']() {
+                const {
+                    ids,
+                    componentName
+                } = this.$event.detail;
+
+                if ('files' === componentName) {
+                    this.$dispatch('sort-files', { ids: ids });
+                }
             }
         },
         init() {

@@ -49,7 +49,7 @@ new class extends Component
             <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-text-soft">{{ $pageTitle }}</h3>
         </div>
         <div class="flex items-center justify-between gap-3">
-            <a href="#" @click.prevent="$dispatch('open-modal-create')" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-text-soft shadow-lg transition hover:brightness-110">
+            <a href="#" @click.prevent="$dispatch('open-modal-process-create')" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-text-soft shadow-lg transition hover:brightness-110">
                 <i class="las la-plus text-lg"></i>
                 Novo
             </a>
@@ -118,7 +118,7 @@ new class extends Component
                         </p>
                     </div>
                 </div>
-                <a href="#" @click.prevent="$dispatch('open-modal-create')" class="inline-flex w-fit self-center items-center justify-center gap-1.5 rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                <a href="#" @click.prevent="$dispatch('open-modal-process-create')" class="inline-flex w-fit self-center items-center justify-center gap-1.5 rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                     <i class="las la-plus text-[15px] text-text-muted-[#ffcf93]/70"></i>
                     Adicione o primeiro
                 </a>

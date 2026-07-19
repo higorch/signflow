@@ -20,7 +20,7 @@ new class extends Component
 {
     use WithFileUploads;
 
-    public ?string $processId;
+    public ?string $processId = null;
     public int $maxSizeMb = 50;
 
     public $files = [];
@@ -71,7 +71,7 @@ new class extends Component
 
             DB::commit();
 
-            $this->js('$wire.$dispatch("close-modal", { ref: "modal-files-upload" })');
+            $this->js('$wire.$dispatch("close-modal", { ref: "modal-process-files-upload" })');
 
             $this->dispatch('refresh')->to('pages::panel.process.save');
             $this->dispatch('notify', msg: 'Arquivos importados com sucesso.', type: 'success');
@@ -101,8 +101,8 @@ new class extends Component
         }
     }
 
-    #[On('opened.modal-files-upload')]
-    public function openeModalFilesUpload($payload)
+    #[On('opened.modal-process-files-upload')]
+    public function openModalFilesUpload($payload)
     {
         $this->processId = $payload['processId'] ?? null;
     }
@@ -110,6 +110,8 @@ new class extends Component
     #[Computed]
     public function process()
     {
+        if (is_null($this->processId)) return null;
+
         return Process::where('id', $this->processId)->withCount([
             'processFiles'
         ])->with([
@@ -128,8 +130,8 @@ new class extends Component
 
         $image = ImageWatermark::apply(
             image: $image,
-            transparency: 0.4,
-            width: 0.20, // 20% da largura da imagem
+            transparency: 0.5,
+            width: 0.25, // 20% da largura da imagem
             alignment: Alignment::BOTTOM_RIGHT,
             offsetX: 20,
             offsetY: 20,
@@ -230,18 +232,18 @@ new class extends Component
 };
 ?>
 
-<div wire:ignore.self class="fixed inset-0 overflow-y-auto bg-black/60 invisible" x-data="modal('modal-files-upload')" x-bind="events" :class="{'visible': open, 'invisible': !open}">
+<div wire:ignore.self class="fixed inset-0 overflow-y-auto bg-black/60 invisible" x-data="modal('modal-process-files-upload')" x-bind="events" :class="{'visible': open, 'invisible': !open}">
 
     <div class="flex items-center justify-center min-h-dvh p-6" @click.self="open = true">
 
         <div wire:loading.class="loading-box-fade" class="relative w-full max-w-2xl rounded-md shadow-lg bg-card" x-show="open" x-transition>
 
-            <span class="absolute top-4 right-4 text-lg cursor-pointer text-gray-400 hover:text-red-500" @click.prevent="open = false">
+            <span class="absolute top-4 right-4 text-lg cursor-pointer text-text-muted hover:text-red-500" @click.prevent="open = false">
                 <i class="las la-times"></i>
             </span>
 
             {{-- HEADER --}}
-            <div class="flex items-center w-full p-4 border-b border-[#fada82]/5">
+            <div class="flex items-center w-full p-4 border-b border-border/40">
                 <p class="font-semibold text-lg text-text-soft">Escolha os Arquivos do Processo</p>
             </div>
 
