@@ -5,7 +5,9 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Support\Facades\Storage;
 
 class Attachment extends Model
 {
@@ -51,6 +53,23 @@ class Attachment extends Model
     public function children()
     {
         return $this->hasMany(self::class, 'parent_attachment_id');
+    }
+
+    protected function publicUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => Storage::disk($this->disk)->url($this->path),
+        );
+    }
+
+    protected function signedUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => Storage::disk($this->disk)->temporaryUrl(
+                $this->path,
+                now()->addMinutes(5)
+            ),
+        );
     }
 
     public function getCreatedAtAttribute(?string $value)

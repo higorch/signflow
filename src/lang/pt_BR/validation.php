@@ -113,7 +113,7 @@ return [
     'string' => 'Texto inválido.',
     'timezone' => 'Fuso inválido.',
     'unique' => 'Já está em uso.',
-    'uploaded' => 'Falha no upload.',
+    'uploaded' => 'O arquivo enviado é inválido ou está corrompido.',
     'url' => 'URL inválida.',
     'uuid' => 'UUID inválido.',
 
