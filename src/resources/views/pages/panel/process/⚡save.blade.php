@@ -294,6 +294,12 @@ new class extends Component
         {{-- FORMULÁRIO --}}
         <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-3 rounded-md p-4 border border-border bg-card shadow-xl">
 
+            <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-3 border-b border-border/25">
+                <h3 class="font-semibold text-xs uppercase tracking-wide text-text-muted/80" data-alpine-devtools-right-click="">
+                    Dados gerais
+                </h3>
+            </div>
+
             {{-- CATEGORY --}}
             <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
                 <label class="label-input-basic">Categoria</label>
@@ -329,7 +335,7 @@ new class extends Component
         {{-- FILES --}}
         <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-3 rounded-md p-4 border border-border bg-card shadow-xl">
 
-            <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-3 border-b border-border/25">
                 <h3 class="font-semibold text-xs uppercase tracking-wide text-text-muted/80">
                     Arquivos(s)
                 </h3>
@@ -418,7 +424,7 @@ new class extends Component
         {{-- SIGNERS --}}
         <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-3 rounded-md p-4 border border-border bg-card shadow-xl">
 
-            <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-3 border-b border-border/25">
                 <h3 class="font-semibold text-xs uppercase tracking-wide text-text-muted/80">
                     Signatário(s)
                 </h3>
@@ -513,7 +519,7 @@ new class extends Component
         {{-- HISTORY --}}
         <div class="col-span-12 md:col-span-12 grid grid-cols-12 gap-3 rounded-md p-4 border border-border bg-card shadow-xl">
 
-            <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-3 border-b border-border/25">
                 <h3 class="font-semibold text-xs uppercase tracking-wide text-text-muted/80">
                     Histórico
                 </h3>

@@ -246,7 +246,7 @@ new class extends Component
 
         <div class="grid grid-cols-12 gap-3 rounded-md p-4 border border-border bg-card shadow-xl">
 
-            <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-3 border-b border-border/50">
+            <div class="col-span-full md:col-span-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-3 border-b border-border/25">
                 <h3 class="font-semibold text-xs uppercase tracking-wide text-text-muted/80" data-alpine-devtools-right-click="">
                     Dados gerais
                 </h3>
