@@ -1,16 +1,7 @@
 document.addEventListener('alpine:init', () => {
 
     Alpine.data('signer', () => ({
-        events: {
-            ['@open-modal-service-fees.window']() {
-                this.$dispatch('open-modal', {
-                    ref: 'modal-service-fees',
-                    payload: {
-                        fees: this.$event.detail.fees
-                    }
-                });
-            }
-        },
+        events: {},
         async swiperTags(
             el,
             swiperOptions = {}

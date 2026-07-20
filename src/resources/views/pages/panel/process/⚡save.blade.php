@@ -114,7 +114,8 @@ new class extends Component
         return $this->process
             ->signers()
             ->with([
-                'user'
+                'user',
+                'department'
             ])
             ->orderByRaw('CASE WHEN sort IS NULL THEN 1 ELSE 0 END')
             ->orderBy('sort')
@@ -394,10 +395,10 @@ new class extends Component
                         <div class="flex items-center justify-between gap-3">
                             <span class="text-xs text-text-muted">{{ maskFormat('file_size', $file->size) }}</span>
                             <div class="flex items-center gap-3">
-                                <button type="button" @click.prevent data-sortable-handle title="Arrastar" class="inline-flex items-center justify-center rounded-md cursor-grab border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                                <button type="button" @click.prevent data-sortable-handle title="Arrastar" class="inline-flex items-center justify-center rounded-md border border-primary/80 bg-primary/25 px-2 py-1 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                                     <i class="las la-arrows-alt text-base"></i>
                                 </button>
-                                <a href="#" wire:click.prevent="removeFile('{{ $file->id }}')" wire:confirm-modal="Excluir arquivo | Deseja realmente excluir o arquivo permanentemente?" title="Remover" class="inline-flex items-center justify-center rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                                <a href="#" wire:click.prevent="removeFile('{{ $file->id }}')" wire:confirm-modal="Excluir arquivo | Deseja realmente excluir o arquivo permanentemente?" title="Remover" class="inline-flex items-center justify-center rounded-md border border-primary/80 bg-primary/25 px-2 py-1 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                                     <i class="las la-times text-base"></i>
                                 </a>
                             </div>
@@ -446,9 +447,11 @@ new class extends Component
                             <tr>
                                 <th class="sticky left-0">Nome</th>
                                 <th>E-mail</th>
-                                <th>Status</th>
-                                <th>Ação em</th>
-                                <th class="sticky right-0 w-12 text-center"></th>
+                                <th>Departamento</th>
+                                <th>CPF/CNPJ</th>
+                                <th class="w-50">Status</th>
+                                <th class="w-35">Ação em</th>
+                                <th class="sticky right-0 w-30 text-center"></th>
                             </tr>
                         </thead>
                         <tbody x-data="sortable('process-signers')">
@@ -457,6 +460,12 @@ new class extends Component
                                 <td class="sticky left-0">{{ $signer->user->name }}</td>
                                 <td class="whitespace-nowrap text-xs">{{ $signer->user->email }}</td>
                                 <td class="whitespace-nowrap text-xs">
+                                    {{ $signer->department ? $signer->department->title : 'N/A' }}
+                                </td>
+                                <td class="whitespace-nowrap text-xs">
+                                    {{ $signer->user->cpf_cnpj ? maskFormat('cpf_cnpj', $signer->user->cpf_cnpj) : 'N/A' }}
+                                </td>
+                                <td class="whitespace-nowrap text-xs w-50">
                                     @php
                                     $badge = match ($signer->status) {
                                     'awaiting-signature' => [
@@ -481,19 +490,19 @@ new class extends Component
                                     };
                                     @endphp
 
-                                    <span class="badge {{ $badge['class'] }}">
+                                    <span class="w-full badge {{ $badge['class'] }}">
                                         {{ $badge['label'] }}
                                     </span>
                                 </td>
-                                <td class="whitespace-nowrap text-xs">
+                                <td class="whitespace-nowrap text-xs w-35">
                                     {{ $signer->action_at ? $signer->action_at->format('d/m/Y H:i:s') : 'N/A' }}
                                 </td>
-                                <td class="sticky right-0 w-12 text-center">
-                                    <div class="flex items-center gap-3">
-                                        <button type="button" @click.prevent data-sortable-handle title="Arrastar" class="inline-flex items-center justify-center rounded-md cursor-grab border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                                <td class="sticky right-0 w-30 text-center">
+                                    <div class="flex justify-end items-center gap-3">
+                                        <button type="button" @click.prevent data-sortable-handle title="Arrastar" class="inline-flex items-center justify-center rounded-md border border-primary/80 bg-primary/25 px-2 py-1 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                                             <i class="las la-arrows-alt text-base"></i>
                                         </button>
-                                        <a href="#" wire:click.prevent="removeSigner('{{ $signer->id }}')" wire:confirm-modal="Excluir Signatário | Deseja realmente excluir o signatário '{{ $signer->user->name }}' permanentemente?" title="Remover" class="inline-flex items-center justify-center rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                                        <a href="#" wire:click.prevent="removeSigner('{{ $signer->id }}')" wire:confirm-modal="Excluir Signatário | Deseja realmente excluir o signatário '{{ $signer->user->name }}' permanentemente?" title="Remover" class="inline-flex items-center justify-center rounded-md border border-primary/80 bg-primary/25 px-2 py-1 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                                             <i class="las la-times text-base"></i>
                                         </a>
                                     </div>

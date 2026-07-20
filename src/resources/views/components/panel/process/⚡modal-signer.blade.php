@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Department;
 use App\Models\User;
 use App\Models\Process;
 use Illuminate\Validation\Rule;
@@ -19,11 +20,14 @@ new class extends Component
         'email' => '',
         'name' => '',
         'cpf_cnpj' => '',
+        'department' => ''
     ];
 
     public function render()
     {
-        return $this->view();
+        return $this->view([
+            'departments' => $this->departments
+        ]);
     }
 
     public function exception($e, $stopPropagation)
@@ -47,6 +51,7 @@ new class extends Component
                 'email' => $signer->email,
                 'name' => $signer->name,
                 'cpf_cnpj' => maskFormat('cpf_cnpj', $signer->cpf_cnpj),
+                'department' => ''
             ];
         }
     }
@@ -71,6 +76,12 @@ new class extends Component
         if (!filter_var(data_get($this->form, 'email'), FILTER_VALIDATE_EMAIL)) return null;
 
         return User::where('email_hash', hmac_hash(data_get($this->form, 'email')))->first();
+    }
+
+    #[Computed]
+    public function departments()
+    {
+        return Department::get();
     }
 
     public function submit()
@@ -106,6 +117,7 @@ new class extends Component
                 $processSigner = $this->process->signers()->firstOrCreate([
                     'user_id' => $signer->id,
                     'status' => 'awaiting-signature',
+                    'department_id' => $this->form['department']
                 ]);
 
                 if ($processSigner->wasRecentlyCreated) {
@@ -174,6 +186,10 @@ new class extends Component
                         }
                     }
                 },
+            ],
+            'form.department' => [
+                'required',
+                Rule::exists('departments', 'id'),
             ],
             'form.cpf_cnpj' => [
                 'cpf_ou_cnpj',
@@ -249,8 +265,19 @@ new class extends Component
                         @error('form.name') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
                     </div>
 
+                    {{-- DEPARTAMENTO --}}
+                    <div class="relative col-span-full md:col-span-6 flex flex-col gap-1">
+                        <label class="label-input-basic">Departamento</label>
+                        <select x-data="choices($wire.entangle('form.department'), '---', '', 'auto', true)">
+                            @foreach($departments as $department)
+                            <option value="{{ $department->id }}">{{ $department->title }}</option>
+                            @endforeach
+                        </select>
+                        @error('form.department') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
+                    </div>
+
                     {{-- CPF/CNPJ --}}
-                    <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
+                    <div class="relative col-span-full md:col-span-6 flex flex-col gap-1">
                         <label class="label-input-basic">CPF / CNPJ</label>
                         <input type="text" wire:model="form.cpf_cnpj" class="input-basic" x-data="mask" data-inputmask="'mask': ['999.999.999-99', '99.999.999/9999-99'], 'keepStatic': true">
                         @error('form.cpf_cnpj') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror

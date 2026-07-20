@@ -231,7 +231,6 @@
 .table-primary tbody tr { @apply transition-colors duration-150; }
 .table-primary tbody tr:hover td { @apply bg-surface; }
 .table-primary tbody tr:first-child td { @apply border-t-0; }
-.table-primary tbody tr.draggable-mirror td { @apply min-w-full! bg-surface; }
 
 /* =========================
    BADGES
