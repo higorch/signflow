@@ -29,7 +29,17 @@ document.addEventListener('alpine:init', () => {
             ['@open-modal-user-filter.window']() {
                 this.$dispatch('open-modal', {
                     ref: 'modal-user-filter',
-                    payload: {}
+                    payload: {
+                        fields: this.$event.detail.fields
+                    }
+                });
+            },
+            ['@open-modal-signer-filter.window']() {
+                this.$dispatch('open-modal', {
+                    ref: 'modal-signer-filter',
+                    payload: {
+                        fields: this.$event.detail.fields
+                    }
                 });
             },
             ['@sortable:stop.window']() {

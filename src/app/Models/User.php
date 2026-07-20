@@ -83,7 +83,7 @@ class User extends Authenticatable implements MustVerifyEmail
             $builder->orderBy('ulid');
         });
     }
-
+    
     public function attachments()
     {
         return $this->morphMany(Attachment::class, 'attachable');
@@ -108,7 +108,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function processes()
     {
-        return $this->hasMany(Process::class);
+        return $this->hasMany(Process::class, 'owner_id');
+    }
+
+    public function processSigners()
+    {
+        return $this->hasMany(ProcessSigner::class);
     }
 
     public function avatar()

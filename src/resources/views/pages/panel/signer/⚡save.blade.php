@@ -1,10 +1,161 @@
 <?php
 
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component
 {
-    //
+    public User $user;
+
+    public array $form = [
+        'name' => '',
+        'email' => '',
+        'cpf_cnpj' => '',
+        'status' => 'active',
+    ];
+
+    public function render()
+    {
+        return $this->view([
+            'pageTitle' => $this->pageTitle
+        ])->title($this->pageTitle);
+    }
+
+    public function exception($e, $stopPropagation)
+    {
+        if ($e instanceof ValidationException) {
+            $this->dispatch('errors-signer-save', errors: $this->getErrorBag());
+            $this->errorToastErrorBag();
+        }
+    }
+
+    public function mount(User $user)
+    {
+        $this->user = $user;
+
+        $this->form = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'cpf_cnpj' => $user->cpf_cnpj,
+            'status' => $user->status,
+        ];
+    }
+
+    #[On('refresh')]
+    public function refresh() {}
+
+    #[Computed]
+    public function pageTitle()
+    {
+        return 'Editar Signatário';
+    }
+
+    public function submit()
+    {
+        $this->validate();
+
+        try {
+            $this->user->update([
+                'email' => $this->form['email'],
+                'name' => $this->form['name'],
+                'cpf_cnpj' => sanitizeSpecialCharacters($this->form['cpf_cnpj'], true),
+                'status' => $this->form['status'],
+            ]);
+
+            session()->flash('success', 'Signatário salvo com sucesso.');
+
+            return $this->redirectRoute('panel.signers.edit', [
+                'user' => $this->user->ulid,
+            ], navigate: true);
+        } catch (\Throwable $e) {
+            Log::channel('signer')->error('Erro ao salvar signatário', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            $this->dispatch('notify', msg: 'Não foi possível salvar.', type: 'error');
+        }
+    }
+
+    protected function prepareForValidation($attributes): array
+    {
+        return $attributes;
+    }
+
+    protected function rules(): array
+    {
+        $signer = $this->user;
+
+        return [
+            'form.status' => 'required|in:active,disabled',
+            'form.name' => [
+                'required',
+                'min:5',
+                'max:40',
+                function ($attribute, $value, $fail) {
+                    $value = trim($value);
+
+                    if (preg_match('/[\x{1F300}-\x{1FAFF}]/u', $value)) {
+                        $fail(__('validation.sem_emoji'));
+                        return;
+                    }
+
+                    foreach (preg_split('/\s+/', $value) as $part) {
+                        if (! preg_match('/^[A-Za-zÀ-ÿ]+$/u', $part)) {
+                            $fail(__('validation.sem_caracteres'));
+                            return;
+                        }
+                    }
+                },
+            ],
+            'form.email' => [
+                'required',
+                'email:filter',
+                function ($attribute, $value, $fail) use ($signer) {
+                    if (! $value) return;
+
+                    $user = User::where('email_hash', hmac_hash($value))->first();
+
+                    if ($user && (! $signer || $user->isNot($signer))) {
+                        $fail(__('validation.unique'));
+                    }
+                },
+            ],
+            'form.cpf_cnpj' => [
+                'required',
+                'cpf_ou_cnpj',
+                function ($attribute, $value, $fail) use ($signer) {
+                    if (!$value) return;
+
+                    $user = User::where(
+                        'cpf_cnpj_hash',
+                        hmac_hash($value, true, true)
+                    )->first();
+
+                    if ($user && (! $signer || $user->isNot($signer))) {
+                        $fail(__('validation.unique'));
+                    }
+                },
+            ],
+        ];
+    }
+
+    private function errorToastErrorBag()
+    {
+        $errors = $this->getErrorBag();
+        $count = count($errors->getMessages());
+
+        if ($count > 0) {
+            $this->dispatch('notify', msg: $count === 1 ? __('app.one_filling_problem') : $count . ' ' . __('app.filling_problems'), type: 'error');
+        }
+    }
 };
 ?>
 
@@ -16,7 +167,7 @@ new class extends Component
             <div class="alert-icon"><i class="las la-check-circle"></i></div>
             <div class="alert-content leading-normal">{{ session('success') }}</div>
         </div>
-        <a href="#" wire:navigate class="px-2 py-1 border border-emerald-400/40 rounded text-emerald-300 hover:text-emerald-200 hover:border-emerald-300 transition text-[11px] tracking-wide uppercase">Voltar</a>
+        <a href="#" @click.prevent="$el.closest('.alert').remove()" class="px-2 py-1 border border-emerald-400/40 rounded text-emerald-300 hover:text-emerald-200 hover:border-emerald-300 transition text-[11px] tracking-wide uppercase">Fechar</a>
     </div>
     @endif
 
@@ -26,7 +177,7 @@ new class extends Component
             <a href="{{ route('panel.signers.index') }}" wire:navigate class="inline-flex items-center justify-center rounded-md border border-[#394150]/30 bg-[#394150]/5 px-3 py-2 text-text-soft transition hover:bg-surface-hover">
                 <i class="las la-angle-left text-base"></i>
             </a>
-            <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-text-soft">Cadastrar Signatário</h3>
+            <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-text-soft">{{ $pageTitle }}</h3>
         </div>
         <div class="flex items-center justify-between gap-3">
             <a href="#" wire:click.prevent="submit" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-text-soft shadow-lg transition hover:brightness-110">
@@ -39,54 +190,42 @@ new class extends Component
     {{-- FORMULÁRIO --}}
     <div class="grow">
 
-        <div class="grid grid-cols-12 gap-4 rounded-md p-4 border border-border bg-card shadow-xl">
+        <div class="grid grid-cols-12 gap-3 rounded-md p-4 border border-border bg-card shadow-xl">
 
-            {{-- NOME --}}
-            <div class="relative col-span-full md:col-span-6 flex flex-col gap-2">
-                <label class="label-input-basic">Nome e sobrenome</label>
+            {{-- NAME --}}
+            <div class="relative col-span-full md:col-span-6 flex flex-col gap-1">
+                <label class="label-input-basic">Nome</label>
                 <div class="relative">
-                    <input type="text" wire:model="form.name" class="input-basic">
+                    <input type="text" class="input-basic" wire:model="form.name">
                     <x-global.limit-input :limit="40" :model="'form.name'" :stop="true" :align="'center'" />
                 </div>
                 @error('form.name') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
             </div>
 
-            {{-- DATA NASCIMENTO --}}
-            <div class="relative col-span-full md:col-span-2 flex flex-col gap-2">
-                <label class="label-input-basic">Data de nascimento</label>
-                <input x-data="flatpickrDateBirth($el, 'form.date_birth')" type="text" wire:model="form.date_birth" class="input-basic" placeholder="__/__/____">
-                @error('form.date_birth') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
+            {{-- STATUS --}}
+            <div class="relative col-span-full md:col-span-6 flex flex-col gap-1">
+                <label class="label-input-basic">Status</label>
+                <select x-data="choices($wire.entangle('form.status'), '---', '', 'auto', false)">
+                    <option value="active">Ativo</option>
+                    <option value="disabled">Inativo</option>
+                </select>
+                @error('form.status') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
             </div>
 
             {{-- EMAIL --}}
-            <div class="relative col-span-full md:col-span-4 flex flex-col gap-2">
+            <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
                 <label class="label-input-basic">E-mail</label>
-                <input type="email" wire:model="form.email" class="input-basic">
+                <div wire:loading.class="loading-input" wire:target="form.email">
+                    <input type="email" wire:model="form.email" class="input-basic">
+                </div>
                 @error('form.email') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
             </div>
 
-            {{-- WHATSAPP --}}
-            <div class="relative col-span-full md:col-span-4 flex flex-col gap-2">
-                <label class="label-input-basic">WhatsApp</label>
-                <input type="text" wire:model="form.whatsapp" class="input-basic" x-data="mask" data-inputmask="'mask': ['(99) 9999-9999', '(99) 99999-9999'], 'keepStatic': true">
-                @error('form.whatsapp') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
-            </div>
-
             {{-- CPF/CNPJ --}}
-            <div class="relative col-span-full md:col-span-4 flex flex-col gap-2">
+            <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
                 <label class="label-input-basic">CPF / CNPJ</label>
                 <input type="text" wire:model="form.cpf_cnpj" class="input-basic" x-data="mask" data-inputmask="'mask': ['999.999.999-99', '99.999.999/9999-99'], 'keepStatic': true">
                 @error('form.cpf_cnpj') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
-            </div>
-
-            {{-- STATUS --}}
-            <div class="relative col-span-full md:col-span-4 flex flex-col gap-2">
-                <label class="label-input-basic">Status</label>
-                <select x-data="choices($wire.entangle('form.status'), '---', '', 'auto', true)">
-                    <option value="active">Ativado</option>
-                    <option value="deactive">Desativado</option>
-                </select>
-                @error('form.status') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
             </div>
 
         </div>

@@ -28,8 +28,7 @@ Route::group(['prefix' => 'panel', 'as' => 'panel.', 'middleware' => ['user.auth
 
     Route::group(['prefix' => 'signers', 'as' => 'signers.'], function () {
         Route::livewire('/', 'pages::panel.signer.index')->name('index');
-        Route::livewire('/create', 'pages::panel.signer.save')->name('create');
-        Route::livewire('/{signer}/edit', 'pages::panel.signer.save')->name('edit');
+        Route::livewire('/{user:ulid}/edit', 'pages::panel.signer.save')->name('edit');
     });
 
     Route::group(['prefix' => 'users', 'as' => 'users.'], function () {

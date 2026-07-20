@@ -61,13 +61,13 @@ new class extends Component
                     </div>
 
                     {{-- NOME --}}
-                    <div class="relative col-span-12 flex flex-col gap-2">
+                    <div class="relative col-span-12 flex flex-col gap-1">
                         <label class="label-input-basic">Nome</label>
                         <input type="text" wire:model.defer="fields.name" class="input-basic">
                     </div>
 
                     {{-- EMAIL --}}
-                    <div class="relative col-span-12 flex flex-col gap-2">
+                    <div class="relative col-span-12 flex flex-col gap-1">
                         <label class="label-input-basic">E-mail</label>
                         <input type="text" wire:model.defer="fields.email" class="input-basic">
                     </div>
