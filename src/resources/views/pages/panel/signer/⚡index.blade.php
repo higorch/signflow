@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\User;
-use App\Models\ProcessSigner;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Computed;
@@ -20,6 +19,7 @@ new class extends Component
     {
         return $this->view([
             'pageTitle' => $this->pageTitle,
+            'hasSearch' => $this->hasSearch,
             'signers' => $this->signers
         ])->title($this->pageTitle);
     }
@@ -36,16 +36,28 @@ new class extends Component
     }
 
     #[On('set-filter-fields')]
-    public function setFilterFields($fields)
+    public function setFilterFields(array $fields)
     {
         $this->search = $fields;
         $this->resetPage();
+    }
+
+    #[On('clear-search-singers')]
+    public function clearSearchUsers()
+    {
+        $this->reset('search');
     }
 
     #[Computed]
     public function pageTitle()
     {
         return 'Signatários';
+    }
+
+    #[Computed]
+    public function hasSearch()
+    {
+        return count(array_filter($this->search)) > 0;
     }
 
     #[Computed]
@@ -57,30 +69,38 @@ new class extends Component
             if (hmac_hash('customer') === $user->role_hash) return;
             $query->ownedBy($user->id);
         })->withCount([
-            'processSigners'
-        ])->paginate(10);
+            'department',
+            'processSigners',
+        ])->when(data_get($this->search, 'name'), function ($query, $term) {
+            $query->where('name_hash', 'like', "%" . hmac_hash($term) . "%");
+        })->when(data_get($this->search, 'email'), function ($query, $term) {
+            $query->where('email_hash', 'like', "%" . hmac_hash($term) . "%");
+        })->when(data_get($this->search, 'status'), function ($query, $term) {
+            $query->where('status', $term);
+        })->when(data_get($this->search, 'departments'), function ($query, $term) {
+            $query->whereIn('department_id', $term);
+        })->when(data_get($this->search, 'cpf_cnpj'), function ($query, $term) {
+            $query->where('cpf_cnpj_hash', hmac_hash($term, true, true));
+        })->orderBy('created_at', 'asc')->paginate($this->perPage);
     }
 
     public function removeSigner(?string $id)
     {
         try {
-            $processSigner = ProcessSigner::findOrFail($id);
+            $signer = User::withCount([
+                'processSigners' => function ($query) {
+                    $query->whereIn('status', ['signed', 'rejected']);
+                }
+            ])->where('ulid', $id)->first();
 
-            (match ($processSigner->status) {
-                'signed' => function () {
-                    $this->dispatch('notify', msg: 'Não é possível remover um signatário que já assinou o documento.', type: 'warning');
-                },
-                'rejected' => function () {
-                    $this->dispatch('notify', msg: 'Não é possível remover um signatário que já rejeitou o documento.', type: 'warning');
-                },
-                default => function () use ($processSigner) {
-                    $processSigner->delete();
-                    $this->dispatch('notify', msg: 'Removido com sucesso.', type: 'success');
-                },
-            })();
+            if ($signer->process_signers_count) {
+                $this->dispatch('notify', msg: 'Signatário vinculado a um processo e não pode ser removido.', type: 'warning');
+            } else {
+                $signer->processSigners()->delete();
+                $this->dispatch('notify', msg: 'Removido com sucesso.', type: 'success');
+            }
         } catch (\Throwable $e) {
-            Log::channel('process')->error('Erro ao remover signatário', [
-                'attachment_id' => $id,
+            Log::channel('signer')->error('Erro ao remover signatário', [
                 'message' => $e->getMessage(),
                 'line' => $e->getLine(),
                 'file' => $e->getFile(),
@@ -113,13 +133,18 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
             <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-text-soft">{{ $pageTitle }}</h3>
         </div>
         <div class="flex items-center justify-between gap-3">
-            <a href="#" @click.prevent="$dispatch('open-modal-signer-filter', {fields: {{ $search }}})" title="Filtrar" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-text-soft shadow-lg transition hover:brightness-110">
+            @if ($hasSearch)
+            <a href="#" @click.prevent="$dispatch('clear-search-singers')" title="{{ __('app.clear_filters') }}" class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-6 py-3 border border-primary/80 bg-primary/25 hover:bg-primary/40">
+                <i class="las la-times text-lg text-text-muted/70"></i>
+            </a>
+            @endif
+            <a href="#" @click.prevent="$dispatch('open-modal-signer-filter', {fields: {{ $search }}})" title="Filtrar" class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-6 py-3 bg-primary text-text-soft">
                 <i class="las la-filter text-lg"></i>
             </a>
         </div>
     </div>
 
-    <div class="grow flex flex-col">
+    <div class="grow flex flex-col gap-3">
 
         @if($signers->isNotEmpty())
 
@@ -131,6 +156,7 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
                         <th class="sticky left-0">Nome</th>
                         <th>E-mail</th>
                         <th>Nº Processos</th>
+                        <th>Departamento</th>
                         <th class="w-45">Status</th>
                         <th class="sticky right-0 w-12 text-center"></th>
                     </tr>
@@ -141,6 +167,7 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
                         <td class="sticky left-0">{{ $signer->name }}</td>
                         <td class="whitespace-nowrap text-xs">{{ $signer->email }}</td>
                         <td class="whitespace-nowrap text-xs">{{ $signer->process_signers_count }}</td>
+                        <td class="whitespace-nowrap text-xs">{{ $signer->department->title }}</td>
                         <td class="whitespace-nowrap text-xs w-45">
                             @php
                             $badge = match ($signer->status) {
@@ -189,7 +216,7 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
 
         @if($signers->hasPages())
         <div>
-            {{ $signers->links('layouts.pagination', data: ['scrollTo' => 'body']) }}
+            {{ $signers->onEachSide(1)->links('layouts.pagination', data: ['scrollTo' => 'body']) }}
         </div>
         @endif
 

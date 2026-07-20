@@ -1,9 +1,9 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use App\Models\Department;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -18,12 +18,14 @@ new class extends Component
         'email' => '',
         'cpf_cnpj' => '',
         'status' => 'active',
+        'department' => ''
     ];
 
     public function render()
     {
         return $this->view([
-            'pageTitle' => $this->pageTitle
+            'pageTitle' => $this->pageTitle,
+            'departments' => $this->departments
         ])->title($this->pageTitle);
     }
 
@@ -40,6 +42,7 @@ new class extends Component
         $this->user = $user;
 
         $this->form = [
+            'department' => $user->department_id,
             'name' => $user->name,
             'email' => $user->email,
             'cpf_cnpj' => $user->cpf_cnpj,
@@ -56,12 +59,19 @@ new class extends Component
         return 'Editar Signatário';
     }
 
+    #[Computed]
+    public function departments()
+    {
+        return Department::get();
+    }
+
     public function submit()
     {
         $this->validate();
 
         try {
             $this->user->update([
+                'department_id' => $this->form['department'],
                 'email' => $this->form['email'],
                 'name' => $this->form['name'],
                 'cpf_cnpj' => sanitizeSpecialCharacters($this->form['cpf_cnpj'], true),
@@ -95,6 +105,10 @@ new class extends Component
 
         return [
             'form.status' => 'required|in:active,disabled',
+            'form.department' => [
+                'required',
+                Rule::exists('departments', 'id'),
+            ],
             'form.name' => [
                 'required',
                 'min:5',
@@ -202,18 +216,8 @@ new class extends Component
                 @error('form.name') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
             </div>
 
-            {{-- STATUS --}}
-            <div class="relative col-span-full md:col-span-6 flex flex-col gap-1">
-                <label class="label-input-basic">Status</label>
-                <select x-data="choices($wire.entangle('form.status'), '---', '', 'auto', false)">
-                    <option value="active">Ativo</option>
-                    <option value="disabled">Inativo</option>
-                </select>
-                @error('form.status') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
-            </div>
-
             {{-- EMAIL --}}
-            <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
+            <div class="relative col-span-full md:col-span-6 flex flex-col gap-1">
                 <label class="label-input-basic">E-mail</label>
                 <div wire:loading.class="loading-input" wire:target="form.email">
                     <input type="email" wire:model="form.email" class="input-basic">
@@ -221,11 +225,32 @@ new class extends Component
                 @error('form.email') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
             </div>
 
+            {{-- DEPARTAMENTO --}}
+            <div class="relative col-span-full md:col-span-6 flex flex-col gap-1">
+                <label class="label-input-basic">Departamento</label>
+                <select x-data="choices($wire.entangle('form.department'), '---', '', 'auto', true)">
+                    @foreach($departments as $department)
+                    <option value="{{ $department->id }}">{{ $department->title }}</option>
+                    @endforeach
+                </select>
+                @error('form.department') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
+            </div>
+
             {{-- CPF/CNPJ --}}
-            <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
+            <div class="relative col-span-full md:col-span-6 flex flex-col gap-1">
                 <label class="label-input-basic">CPF / CNPJ</label>
                 <input type="text" wire:model="form.cpf_cnpj" class="input-basic" x-data="mask" data-inputmask="'mask': ['999.999.999-99', '99.999.999/9999-99'], 'keepStatic': true">
                 @error('form.cpf_cnpj') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
+            </div>
+
+            {{-- STATUS --}}
+            <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
+                <label class="label-input-basic">Status</label>
+                <select x-data="choices($wire.entangle('form.status'), '---', '', 'auto', false)">
+                    <option value="active">Ativo</option>
+                    <option value="disabled">Inativo</option>
+                </select>
+                @error('form.status') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
             </div>
 
         </div>

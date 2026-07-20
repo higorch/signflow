@@ -23,9 +23,9 @@ class Department extends Model
         });
     }
 
-    public function user()
+    public function users()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(User::class);
     }
 
     public function getCreatedAtAttribute(?string $value)

@@ -10,6 +10,7 @@ return [
     'no_applied' => 'não aplicado',
     'no_selected' => 'nada selecionado',
     'no_settings' => 'nenhuma configuração encontrada',
+    'clear_filters' => 'limpar filtros',
     'day' => 'dia',
     'days' => 'dias',
     'sunday' => 'domingo',

@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Department;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -10,11 +12,14 @@ new class extends Component
         'email' => '',
         'status' => '',
         'cpf_cnpj' => '',
+        'departments' => '',
     ];
 
     public function render()
     {
-        return $this->view();
+        return $this->view([
+            'departments' => $this->departments
+        ]);
     }
 
     #[On('opened.modal-signer-filter')]
@@ -23,9 +28,15 @@ new class extends Component
         $this->fields = array_merge($this->fields, data_get($payload, 'fields'));
     }
 
+    #[Computed]
+    public function departments()
+    {
+        return Department::has('users.processSigners')->get();
+    }
+
     public function submit()
     {
-        $this->dispatch('set-filter-fields', fields: $this->fields)->to('pages::admin.user.index');
+        $this->dispatch('set-filter-fields', fields: $this->fields)->to('pages::panel.signer.index');
         $this->js('$wire.$dispatch("close-modal", { ref: "modal-signer-filter" })');
     }
 };
@@ -47,15 +58,25 @@ new class extends Component
             {{-- BODY --}}
             <div class="flex-1 min-h-0 p-4 overflow-y-auto">
 
-                <div class="grid grid-cols-12 gap-6">
+                <div class="grid grid-cols-12 gap-3">
 
                     {{-- STATUS --}}
-                    <div class="relative col-span-12 md:col-span-12 flex flex-col gap-2">
+                    <div class="relative col-span-12 md:col-span-12 flex flex-col gap-1">
                         <label class="label-input-basic">Status</label>
                         <select x-data="choices($wire.entangle('fields.status'), 'Todos', '', 'auto', true)">
                             <option value="">Todos</option>
                             <option value="active">Ativo</option>
                             <option value="disabled">Inativo</option>
+                        </select>
+                    </div>
+
+                    {{-- DEPARTAMENTOS --}}
+                    <div class="relative col-span-12 md:col-span-12 flex flex-col gap-1">
+                        <label class="label-input-basic">Departamentos</label>
+                        <select x-data="choices($wire.entangle('fields.departments'), '---', '', 'auto', true)" multiple>
+                            @foreach($departments as $department)
+                            <option value="{{ $department->id }}">{{ $department->title }}</option>
+                            @endforeach
                         </select>
                     </div>
 
