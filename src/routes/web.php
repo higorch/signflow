@@ -34,7 +34,7 @@ Route::group(['prefix' => 'panel', 'as' => 'panel.', 'middleware' => ['user.auth
     Route::group(['prefix' => 'users', 'as' => 'users.'], function () {
         Route::livewire('/', 'pages::panel.user.index')->name('index');
         Route::livewire('/create', 'pages::panel.user.save')->name('create');
-        Route::livewire('/{user}/edit', 'pages::panel.user.save')->name('edit');
+        Route::livewire('/{user:ulid}/edit', 'pages::panel.user.save')->name('edit');
     });
 
     Route::group(['prefix' => 'processes', 'as' => 'processes.'], function () {

@@ -83,7 +83,7 @@ class User extends Authenticatable implements MustVerifyEmail
             $builder->orderBy('ulid');
         });
     }
-    
+
     public function attachments()
     {
         return $this->morphMany(Attachment::class, 'attachable');
@@ -92,13 +92,13 @@ class User extends Authenticatable implements MustVerifyEmail
     // Lista os usuários internos vinculados ao customer. role=customer $customer->internalUsers()
     public function internalUsers()
     {
-        return $this->belongsToMany(User::class, 'customer_users', 'customer_id', 'user_id');
+        return $this->belongsToMany(User::class, 'customer_users', 'customer_id', 'user_id')->withTimestamps();
     }
 
     // Lista os customers aos quais o usuário interno foi vinculado. $signer->linkedCustomers()
     public function linkedCustomers()
     {
-        return $this->belongsToMany(User::class, 'customer_users', 'user_id', 'customer_id');
+        return $this->belongsToMany(User::class, 'customer_users', 'user_id', 'customer_id')->withTimestamps();
     }
 
     public function department()
