@@ -27,6 +27,8 @@ class Process extends Model
         'title',
         'description',
         'status', // draft, awaiting-approval, approved, failed, canceled
+        'sign_deadline_at',
+        'expires_at'
     ];
 
     protected $hidden = [
@@ -37,9 +39,11 @@ class Process extends Model
     protected function casts(): array
     {
         return [
-            // publicos protegidos
             'title' => 'encrypted',
             'description' => 'encrypted',
+            'sign_deadline_at' => 'datetime',
+            'expires_at' => 'datetime',
+            'data' => 'collection',
         ];
     }
 
