@@ -14,6 +14,7 @@ class ProcessSigner extends Model
     protected $fillable = [
         'user_id',
         'process_id',
+        'department_id',
         'status',
         'action_at',
         'action_ip',
@@ -45,6 +46,11 @@ class ProcessSigner extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
     }
 
     public function getActionAtAttribute(?string $value)
