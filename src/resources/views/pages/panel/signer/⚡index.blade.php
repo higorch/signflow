@@ -155,7 +155,7 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
                     <tr>
                         <th class="sticky left-0">Nome</th>
                         <th>E-mail</th>
-                        <th>Nº Processos</th>
+                        <th>Processos</th>
                         <th>Departamento</th>
                         <th class="w-45">Status</th>
                         <th class="sticky right-0 w-12 text-center"></th>
@@ -166,7 +166,12 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
                     <tr wire:key="signer-{{ $signer->id }}">
                         <td class="sticky left-0">{{ $signer->name }}</td>
                         <td class="whitespace-nowrap text-xs">{{ $signer->email }}</td>
-                        <td class="whitespace-nowrap text-xs">{{ $signer->process_signers_count }}</td>
+                        <td class="whitespace-nowrap text-xs">
+                            <button type="button" @click.prevent="$dispatch('open-modal-singer-processes', {signerId: '{{ $signer->ulid }}' })" class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-0.5 cursor-pointer border border-primary/80 bg-primary/25 hover:bg-primary/40">
+                                ({{ $signer->process_signers_count }})
+                                <span>Ver todos</span>
+                            </button>
+                        </td>
                         <td class="whitespace-nowrap text-xs">{{ $signer->department->title }}</td>
                         <td class="whitespace-nowrap text-xs w-45">
                             @php
@@ -236,6 +241,7 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
     @teleport('body')
     <div>
         <livewire:panel.signer.modal-filter />
+        <livewire:panel.signer.modal-processes />
     </div>
     @endteleport
 

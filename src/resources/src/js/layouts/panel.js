@@ -42,6 +42,14 @@ document.addEventListener('alpine:init', () => {
                     }
                 });
             },
+            ['@open-modal-singer-processes.window']() {
+                this.$dispatch('open-modal', {
+                    ref: 'modal-singer-processes',
+                    payload: {
+                        signerId: this.$event.detail.signerId
+                    }
+                });
+            },
             ['@sortable:stop.window']() {
                 const {
                     ids,
