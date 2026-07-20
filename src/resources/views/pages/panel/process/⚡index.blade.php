@@ -99,16 +99,66 @@ new class extends Component
             <table class="table-primary table-fixed">
                 <thead>
                     <tr>
-                        <th class="sticky left-0">Título</th>
-                        <th>Ref.</th>
+                        <th class="sticky left-0">Ref.</th>
+                        <th>Título</th>
+                        <th class="w-45">Status</th>
+                        <th>Assina até</th>
+                        <th>Valido até</th>
+                        <th class="w-8 text-center"></th>
                         <th class="sticky right-0 w-12 text-center"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($processes as $process)
                     <tr wire:key="process-{{ $process->id }}">
-                        <td class="sticky left-0">{{ $process->title }}</td>
-                        <td class="whitespace-nowrap text-xs">{{ $process->reference }}</td>
+                        <td class="sticky left-0">{{ $process->reference }}</td>
+                        <td class="whitespace-nowrap text-xs">{{ Str::words($process->title, 5, '...') }}</td>
+                        <td class="whitespace-nowrap text-xs w-45">
+                            @php
+                            $badge = match ($process->status) {
+                            'draft' => [
+                            'class' => 'badge-gray',
+                            'label' => 'Rascunho',
+                            ],
+
+                            'awaiting-approval' => [
+                            'class' => 'badge-yellow',
+                            'label' => 'Aguardando assinaturas',
+                            ],
+
+                            'approved' => [
+                            'class' => 'badge-grenn',
+                            'label' => 'Todos assinaram',
+                            ],
+
+                            'failed' => [
+                            'class' => 'badge-red',
+                            'label' => 'Rejeitado',
+                            ],
+
+                            'canceled' => [
+                            'class' => 'badge-red',
+                            'label' => 'Cancelado',
+                            ],
+
+                            default => [
+                            'class' => 'badge-black',
+                            'label' => 'N/A',
+                            ],
+                            };
+                            @endphp
+
+                            <span class="badge {{ $badge['class'] }}">
+                                {{ $badge['label'] }}
+                            </span>
+                        </td>
+                        <td class="whitespace-nowrap text-xs">{{ $process->sign_deadline_at ? $process->sign_deadline_at->format('d/m/Y H:i:s') : 'N/A' }}</td>
+                        <td class="whitespace-nowrap text-xs">{{ $process->expires_at ? $process->expires_at->format('d/m/Y H:i:s') : 'N/A' }}</td>
+                        <td class="whitespace-nowrap text-xs w-8">
+                            <a href="{{ route('signer.process', ['process' => $process->id ]) }}" target="_blank" class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-0.5 cursor-pointer border border-primary/80 bg-primary/25 hover:bg-primary/40">
+                                <span>Visualizar</span>
+                            </a>
+                        </td>
                         <td class="sticky right-0 w-12 text-center">
                             <div x-data="dropdown('left-start', 'absolute', 5)" @click.outside="open = false" class="relative z-20">
                                 <a x-ref="referenceDropdown" href="#" class="flex items-center justify-center w-9 h-9 text-gray-500 hover:text-text-soft transition" @click.prevent="open = !open">

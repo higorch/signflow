@@ -236,17 +236,16 @@
    BADGES
 ========================= */
 .badge {@apply inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[11px] font-semibold leading-none border;}
-/* SUCCESS */
-.badge.badge-green {@apply border-emerald-400/30 bg-emerald-400/10 text-emerald-300;}
-/* NEUTRO */
-.badge.badge-gray {@apply border-white/10 bg-white/5 text-text-soft/60;}
-/* ERROR / ROOT */
-.badge.badge-red {@apply border-red-400/30 bg-red-400/10 text-red-300;}
-/* WARNING */
-.badge.badge-yellow {@apply border-amber-400/30 bg-amber-400/10 text-amber-300;}
-/* DARK / DEFAULT */
-.badge.badge-black {@apply border-white/10 bg-white/5 text-text-soft/80;}
+/* SUCCESS */ .badge.badge-green {@apply border-emerald-500/25 bg-emerald-500/12 text-emerald-400;}
+/* INFO */ .badge.badge-blue {@apply border-sky-500/25 bg-sky-500/12 text-sky-400;}
+/* NEUTRO */ .badge.badge-gray {@apply border-zinc-500/20 bg-zinc-500/10 text-zinc-300;}
+/* ERROR */ .badge.badge-red {@apply border-red-500/25 bg-red-500/12 text-red-400;}
+/* WARNING */ .badge.badge-yellow {@apply border-amber-500/25 bg-amber-500/12 text-amber-400;}
+/* DARK */ .badge.badge-black {@apply border-zinc-700/40 bg-zinc-900/40 text-zinc-200;}
 
+/* PURPLE */ .badge.badge-purple {@apply border-violet-500/25 bg-violet-500/12 text-violet-400;}
+/* CYAN */ .badge.badge-cyan {@apply border-cyan-500/25 bg-cyan-500/12 text-cyan-400;}
+/* PINK */ .badge.badge-pink {@apply border-pink-500/25 bg-pink-500/12 text-pink-400;}
 }
 
 /* =========================

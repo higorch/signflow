@@ -42,3 +42,7 @@ Route::group(['prefix' => 'panel', 'as' => 'panel.', 'middleware' => ['user.auth
         Route::livewire('/{process}/edit', 'pages::panel.process.save')->name('edit');
     });
 });
+
+Route::group(['prefix' => 'signer', 'as' => 'signer.'], function () {
+    Route::livewire('{process}/process', 'pages::signer.process')->name('process');
+});
