@@ -27,6 +27,7 @@ class Process extends Model
         'title',
         'description',
         'status', // draft, awaiting-approval, approved, failed, canceled
+        'sequential_signing',
         'sign_deadline_at',
         'expires_at'
     ];
@@ -43,7 +44,7 @@ class Process extends Model
             'description' => 'encrypted',
             'sign_deadline_at' => 'datetime',
             'expires_at' => 'datetime',
-            'data' => 'collection',
+            'sequential_signing' => 'boolean',
         ];
     }
 

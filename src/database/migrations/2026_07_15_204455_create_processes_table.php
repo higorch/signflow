@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('description_hash', 64)->nullable();
             $table->string('status', 25)->index(); // draft, awaiting-approval, approved, failed, canceled
-            $table->json('data')->nullable(); // dados como configuraçoes do processo ou qualquer outro dado não relacional
+            $table->boolean('sequential_signing')->default(false);
             $table->timestamp('sign_deadline_at')->nullable()->index(); // Prazo máximo para todas as assinaturas
             $table->timestamp('expires_at')->nullable()->index(); // Validade do processo
             $table->timestamps();
