@@ -3,6 +3,7 @@
 use App\Models\Attachment;
 use App\Models\Category;
 use App\Models\Process;
+use App\Models\ProcessSigner;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -160,18 +161,22 @@ new class extends Component
     public function removeSigner(?string $id)
     {
         try {
-            dd($id);
-            $attachment = Attachment::findOrFail($id);
+            $processSigner = ProcessSigner::findOrFail($id);
 
-            if (Storage::disk($attachment->disk)->exists($attachment->path)) {
-                Storage::disk($attachment->disk)->delete($attachment->path);
-            }
-
-            $attachment->delete();
-
-            $this->dispatch('notify', msg: 'Removido com sucesso.', type: 'success');
+            (match ($processSigner->status) {
+                'signed' => function () {
+                    $this->dispatch('notify', msg: 'Não é possível remover um assinante que já assinou o documento.', type: 'warning');
+                },
+                'rejected' => function () {
+                    $this->dispatch('notify', msg: 'Não é possível remover um assinante que já rejeitou o documento.', type: 'warning');
+                },
+                default => function () use ($processSigner) {
+                    $processSigner->delete();
+                    $this->dispatch('notify', msg: 'Removido com sucesso.', type: 'success');
+                },
+            })();
         } catch (\Throwable $e) {
-            Log::channel('process')->error('Erro ao remover arquivo', [
+            Log::channel('process')->error('Erro ao remover signatário', [
                 'attachment_id' => $id,
                 'message' => $e->getMessage(),
                 'line' => $e->getLine(),
@@ -435,7 +440,8 @@ new class extends Component
                             <tr>
                                 <th class="sticky left-0">Nome</th>
                                 <th>E-mail</th>
-                                <th>Assinou</th>
+                                <th>Status</th>
+                                <th>Ação em</th>
                                 <th class="sticky right-0 w-12 text-center"></th>
                             </tr>
                         </thead>
@@ -444,13 +450,44 @@ new class extends Component
                             <tr data-sortable-item="{{ $signer->id }}" wire:key="signer-{{ $signer->id }}">
                                 <td class="sticky left-0">{{ $signer->user->name }}</td>
                                 <td class="whitespace-nowrap text-xs">{{ $signer->user->email }}</td>
-                                <td class="whitespace-nowrap text-xs">Não</td>
+                                <td class="whitespace-nowrap text-xs">
+                                    @php
+                                    $badge = match ($signer->status) {
+                                    'awaiting-signature' => [
+                                    'class' => 'badge-yellow',
+                                    'label' => 'Aguardando assinatura',
+                                    ],
+
+                                    'signed' => [
+                                    'class' => 'badge-green',
+                                    'label' => 'Assinado',
+                                    ],
+
+                                    'rejected' => [
+                                    'class' => 'badge-red',
+                                    'label' => 'Rejeitado',
+                                    ],
+
+                                    default => [
+                                    'class' => 'badge-black',
+                                    'label' => $signer->status,
+                                    ],
+                                    };
+                                    @endphp
+
+                                    <span class="badge {{ $badge['class'] }}">
+                                        {{ $badge['label'] }}
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap text-xs">
+                                    {{ $signer->action_at ? $signer->action_at->format('d/m/Y H:i:s') : 'N/A' }}
+                                </td>
                                 <td class="sticky right-0 w-12 text-center">
                                     <div class="flex items-center gap-3">
                                         <button type="button" @click.prevent data-sortable-handle title="Arrastar" class="inline-flex items-center justify-center rounded-md cursor-grab border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                                             <i class="las la-arrows-alt text-base"></i>
                                         </button>
-                                        <a href="#" wire:click.prevent="removeSigner('{{ $signer->id }}')" wire:confirm-modal="Excluir Signatário | Deseja realmente excluir o signatário permanentemente?" title="Remover" class="inline-flex items-center justify-center rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
+                                        <a href="#" wire:click.prevent="removeSigner('{{ $signer->id }}')" wire:confirm-modal="Excluir Signatário | Deseja realmente excluir o signatário '{{ $signer->user->name }}' permanentemente?" title="Remover" class="inline-flex items-center justify-center rounded-md border border-primary/80 bg-primary/25 px-3 py-2 text-[10px] uppercase tracking-wide text-text transition hover:bg-primary/40">
                                             <i class="las la-times text-base"></i>
                                         </a>
                                     </div>

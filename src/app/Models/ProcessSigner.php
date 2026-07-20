@@ -47,6 +47,11 @@ class ProcessSigner extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function getActionAtAttribute(?string $value)
+    {
+        return $value ? Carbon::parse($value)->timezone('America/Sao_Paulo') : null;
+    }
+
     public function getCreatedAtAttribute(?string $value)
     {
         return $value ? Carbon::parse($value)->timezone('America/Sao_Paulo') : null;
