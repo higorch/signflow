@@ -187,7 +187,7 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
                             };
                             @endphp
 
-                           {{ $role['label'] }}
+                            {{ $role['label'] }}
                         </td>
                         <td class="whitespace-nowrap text-xs w-45">
                             @php
@@ -244,12 +244,12 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
         @else
 
         @if($hasSearch)
-            <div class="col-span-full md:col-span-12 alert alert-info flex items-center justify-between">
-                <div class="flex items-start gap-2">
-                    <div class="alert-icon"><i class="las la-info-circle"></i></div>
-                    <div class="alert-content leading-normal">Nenhum usuário para o filtro aplicado.</div>
-                </div>
+        <div class="col-span-full md:col-span-12 alert alert-info flex items-center justify-between">
+            <div class="flex items-start gap-2">
+                <div class="alert-icon"><i class="las la-info-circle"></i></div>
+                <div class="alert-content leading-normal">Nenhum usuário para o filtro aplicado.</div>
             </div>
+        </div>
         @else
         <div class="flex-1 flex flex-col">
 

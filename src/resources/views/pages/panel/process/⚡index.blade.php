@@ -3,6 +3,7 @@
 use App\Models\Process;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -10,18 +11,52 @@ new class extends Component
 {
     use WithPagination;
 
+    public int $perPage = 10;
+    public array $search = [];
+
     public function render()
     {
         return $this->view([
             'pageTitle' => $this->pageTitle,
+            'hasSearch' => $this->hasSearch,
             'processes' => $this->processes,
         ])->title($this->pageTitle);
+    }
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    #[On('refresh')]
+    public function refresh()
+    {
+        $this->setPage($this->getPage());
+    }
+
+    #[On('set-filter-fields')]
+    public function setFilterFields(array $fields)
+    {
+        $this->search = $fields;
+        $this->resetPage();
+    }
+
+    #[On('clear-search-processes')]
+    public function clearSearchProcesses()
+    {
+        $this->reset('search');
     }
 
     #[Computed]
     public function pageTitle()
     {
         return 'Processos';
+    }
+
+    #[Computed]
+    public function hasSearch()
+    {
+        return count(array_filter($this->search)) > 0;
     }
 
     #[Computed]
@@ -49,14 +84,13 @@ new class extends Component
             <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-text-soft">{{ $pageTitle }}</h3>
         </div>
         <div class="flex items-center justify-between gap-3">
-            <a href="#" @click.prevent="$dispatch('open-modal-process-create')" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-text-soft shadow-lg transition hover:brightness-110">
+            <a href="#" @click.prevent="$dispatch('open-modal-process-create')" class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-6 py-3 bg-primary text-text-soft">
                 <i class="las la-plus text-lg"></i>
-                Novo
             </a>
         </div>
     </div>
 
-    <div class="grow flex flex-col">
+    <div class="grow flex flex-col gap-3">
 
         @if($processes->isNotEmpty())
 
@@ -105,6 +139,14 @@ new class extends Component
 
         @else
 
+        @if($hasSearch)
+        <div class="col-span-full md:col-span-12 alert alert-info flex items-center justify-between">
+            <div class="flex items-start gap-2">
+                <div class="alert-icon"><i class="las la-info-circle"></i></div>
+                <div class="alert-content leading-normal">Nenhum processo para o filtro aplicado.</div>
+            </div>
+        </div>
+        @else
         <div class="flex-1 flex flex-col">
 
             <div class="grow flex flex-col justify-center gap-4 md:gap-5 rounded-md border border-border/50 bg-card-hover/50 p-4 backdrop-blur-sm">
@@ -125,6 +167,7 @@ new class extends Component
             </div>
 
         </div>
+        @endif
 
         @endif
 
