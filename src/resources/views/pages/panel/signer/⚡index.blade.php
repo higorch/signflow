@@ -157,6 +157,7 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
                         <th>E-mail</th>
                         <th>Processos</th>
                         <th>Departamento</th>
+                        <th>CPF/CNPJ</th>
                         <th class="w-45">Status</th>
                         <th class="sticky right-0 w-12 text-center"></th>
                     </tr>
@@ -173,6 +174,7 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
                             </button>
                         </td>
                         <td class="whitespace-nowrap text-xs">{{ $signer->department->title }}</td>
+                        <td class="whitespace-nowrap text-xs">{{ $signer->cpf_cnpj ? maskFormat('cpf_cnpj', $signer->cpf_cnpj) : 'N/A' }}</td>
                         <td class="whitespace-nowrap text-xs w-45">
                             @php
                             $badge = match ($signer->status) {
