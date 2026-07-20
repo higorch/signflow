@@ -173,7 +173,9 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
                                 <span>Ver todos</span>
                             </button>
                         </td>
-                        <td class="whitespace-nowrap text-xs">{{ $signer->department->title }}</td>
+                        <td class="whitespace-nowrap text-xs">
+                            {{ $signer->department ? $signer->department->title : 'N/A' }}
+                        </td>
                         <td class="whitespace-nowrap text-xs">{{ $signer->cpf_cnpj ? maskFormat('cpf_cnpj', $signer->cpf_cnpj) : 'N/A' }}</td>
                         <td class="whitespace-nowrap text-xs w-45">
                             @php
