@@ -71,7 +71,6 @@ Os seeders criam automaticamente:
 - Categorias
 - Processos
 - Signatários
-- Arquivos
 - Demais dados necessários para testes
 
 ---
