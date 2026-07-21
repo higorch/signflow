@@ -11,7 +11,6 @@ new class extends Component
     {
         return $this->view([
             'user' => $this->user,
-            'nameInitials' => $this->nameInitials,
             'profileUrl' => $this->profileUrl,
         ]);
     }
@@ -31,26 +30,6 @@ new class extends Component
         request()->session()->regenerateToken(); // previne CSRF antigo
 
         return redirect()->route('auth.login');
-    }
-
-    #[Computed]
-    public function nameInitials()
-    {
-        $user = $this->user;
-
-        if (is_null($user)) return;
-
-        $name = trim($user->display_name ?? 'U');
-        $parts = array_filter(explode(' ', $name));
-
-        if (empty($parts)) {
-            return 'U';
-        }
-
-        $first = mb_substr($parts[0], 0, 1);
-        $last = count($parts) > 1 ? mb_substr(end($parts), 0, 1) : '';
-
-        return strtoupper($first . $last);
     }
 
     #[Computed]
@@ -86,7 +65,7 @@ new class extends Component
             @if(optional($user)->avatar)
             <img src="{{ $user->avatar->public_url }}" class="w-full h-full object-cover">
             @else
-            {{ $nameInitials }}
+            {{ initials($user->display_name) }}
             @endif
         </div>
     </a>

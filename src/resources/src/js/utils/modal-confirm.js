@@ -24,7 +24,7 @@ window.confirmModal = function (options = {}) {
                     <p class="text-text-soft/70 leading-relaxed">${message}</p>
                 </div>
                 <div class="flex gap-4 w-full p-4 border-t border-border/40">
-                    <button class="cancel flex-1 btn-secuondary">
+                    <button class="cancel flex-1 btn-secondary">
                         <i class="las la-times text-lg"></i>
                         Cancelar
                     </button>

@@ -40,13 +40,11 @@ new class extends Component
     <div class="border-b border-border/40 pb-6">
         <span class="text-sm text-text-muted">REF. {{ $process->reference }}</span>
         <h1 class="mt-1 text-3xl font-semibold tracking-tight text-text">{{ $process->title }}</h1>
+        @foreach (preg_split('/\R+/', trim($process->description)) as $paragraph)
         <p class="mt-3 max-w-3xl text-sm leading-6 text-text-muted">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse potenti.
-            Donec vitae neque sed nunc malesuada dignissim. Integer facilisis, libero sed
-            tristique gravida, tortor lectus tincidunt nisi, non interdum justo mauris non
-            tortor. Pellentesque habitant morbi tristique senectus et netus et malesuada
-            fames ac turpis egestas.
+            {{ $paragraph }}
         </p>
+        @endforeach
     </div>
 
     {{-- Arquivos --}}
@@ -61,20 +59,27 @@ new class extends Component
         </div>
         <div class="flex flex-col gap-3">
             @forelse($process->processFiles as $file)
+            @php
+            $isPdf = $file->extension === 'pdf';
+            @endphp
             <div class="rounded-md border border-border bg-surface p-4">
                 <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div class="flex items-center gap-4">
                         <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
+                            @if($isPdf)
                             <i class="las la-file-pdf text-2xl text-primary"></i>
+                            @else
+                            <i class="las la-image text-2xl text-primary"></i>
+                            @endif
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="truncate text-sm font-medium text-text">
                                 {{ $file->caption ?? 'Sem legenda' }}
                             </div>
                             <div class="mt-1 flex items-center gap-2 text-xs text-text-muted">
-                                <span>{{ strtoupper($file->extension) }}</span>
+                                <span>{{ $isPdf ? 'PDF' : 'IMAGEM' }}</span>
                                 <span>•</span>
-                                <span>{{ number_format($file->size / 1024 / 1024, 2) }} MB</span>
+                                <span>{{ maskFormat('file_size', $file->size) }}</span>
                             </div>
                         </div>
                     </div>
@@ -108,15 +113,15 @@ new class extends Component
             <div class="rounded-md border border-border bg-surface p-4">
                 <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div class="flex items-center gap-4">
-                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
-                            <i class="las la-user text-2xl text-primary"></i>
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-2x border border-border text-primary bg-background">
+                            {{ initials($signer->user->display_name) }}
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="truncate text-sm font-medium text-text">
-                                {{ $signer->user->name }}
+                                {{ $signer->user->display_name }}
                             </div>
                             <div class="mt-1 flex items-center gap-2 text-xs text-text-muted">
-                                <span>{{ $signer->department?->name ?? 'Sem departamento' }}</span>
+                                <span>{{ $signer->department ? $signer->department->title : 'Sem departamento' }}</span>
                             </div>
                         </div>
                     </div>

@@ -164,7 +164,7 @@ new class extends Component
 
             {{-- FOOTER --}}
             <div class="flex gap-4 w-full p-4 border-t border-border/40">
-                <a href="#" @click.prevent="open = false" class="flex-1 btn-secuondary">
+                <a href="#" @click.prevent="open = false" class="flex-1 btn-secondary">
                     <i class="las la-times text-lg"></i>Fechar
                 </a>
                 <a href="#" wire:click.prevent="submit" class="flex-1 btn-primary">

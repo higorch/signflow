@@ -328,6 +328,26 @@ if (!function_exists('autop')) {
     }
 }
 
+if (! function_exists('initials')) {
+    function initials(string $name): string
+    {
+        $parts = array_values(array_filter(preg_split('/\s+/', trim($name))));
+
+        if (empty($parts)) {
+            return '';
+        }
+
+        if (count($parts) === 1) {
+            return mb_strtoupper(mb_substr($parts[0], 0, 1));
+        }
+
+        return mb_strtoupper(
+            mb_substr($parts[0], 0, 1) .
+                mb_substr($parts[count($parts) - 1], 0, 1)
+        );
+    }
+}
+
 /** HELPERS DE SEGURANÇA */
 
 if (!function_exists('encrypter')) {
