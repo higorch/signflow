@@ -19,6 +19,7 @@ class AuthService
             'admin' => 'Administrador',
             'customer' => 'Cliente',
             'signer' => 'Signatário',
+            'staff' => 'Equipe',
             default => null,
         };
     }

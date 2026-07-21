@@ -21,9 +21,9 @@
     </style>
 </head>
 
-<body x-data="public" x-bind="events" class="antialiased bg-background">
+<body x-data="signer" x-bind="events" class="antialiased bg-background">
 
-    <main class="flex-1 flex flex-col px-6 lg:px-10 pb-10">{{ $slot }}</main>
+    <main class="flex-1 flex flex-col p-6 lg:p-10">{{ $slot }}</main>
     
     @livewireScripts
 </body>
