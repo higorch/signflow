@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Process;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -72,10 +73,31 @@ new class extends Component
             $query->ownedBy($user->id);
         }
 
-        return $query->latest()->paginate($this->perPage);
+        return $query->with('category')->when(data_get($this->search, 'status'), function ($query, $status) {
+            $query->where('status', $status);
+        })->when(data_get($this->search, 'signer'), function ($query, $signer) {
+            $query->whereHas('signers.user', function ($query) use ($signer) {
+                $query->where('ulid', $signer);
+            });
+        })->when(data_get($this->search, 'categories'), function ($query, $categories) {
+            $query->whereIn('category_id', $categories);
+        })->when(data_get($this->search, 'period'), function ($query, $period) {
+            if (empty($period['from']) || empty($period['to'])) {
+                return;
+            }
+
+            $query->whereBetween('created_at', [
+                Carbon::createFromFormat('d/m/Y', $period['from'])->startOfDay(),
+                Carbon::createFromFormat('d/m/Y', $period['to'])->endOfDay(),
+            ]);
+        })->latest()->paginate($this->perPage);
     }
 };
 ?>
+
+@php
+$search = json_encode($search, JSON_UNESCAPED_UNICODE);
+@endphp
 
 <div class="flex-1 flex flex-col">
 
@@ -94,6 +116,14 @@ new class extends Component
             <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-text-soft">{{ $pageTitle }}</h3>
         </div>
         <div class="flex items-center justify-between gap-3">
+            @if ($hasSearch)
+            <a href="#" @click.prevent="$dispatch('clear-search-processes')" title="{{ __('app.clear_filters') }}" class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-6 py-3 border border-primary/80 bg-primary/25 hover:bg-primary/40">
+                <i class="las la-times text-lg text-text-muted/70"></i>
+            </a>
+            @endif
+            <a href="#" @click.prevent="$dispatch('open-modal-process-filter', {fields: {{ $search }}})" title="Filtrar" class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-6 py-3 bg-primary text-text-soft">
+                <i class="las la-filter text-lg"></i>
+            </a>
             <a href="#" @click.prevent="$dispatch('open-modal-process-create')" class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-6 py-3 bg-primary text-text-soft">
                 <i class="las la-plus text-lg"></i>
             </a>
@@ -112,8 +142,10 @@ new class extends Component
                         <th class="sticky left-0">Ref.</th>
                         <th>Título</th>
                         <th class="w-45">Status</th>
+                        <th>Categoria</th>
                         <th>Assina até</th>
                         <th>Valido até</th>
+                        <th>Criaddo em</th>
                         <th class="w-8 text-center"></th>
                         <th class="sticky right-0 w-12 text-center"></th>
                     </tr>
@@ -162,8 +194,10 @@ new class extends Component
                                 {{ $badge['label'] }}
                             </span>
                         </td>
+                        <td class="whitespace-nowrap text-xs">{{ $process->category ? $process->category->title : 'N/A' }}</td>
                         <td class="whitespace-nowrap text-xs">{{ $process->sign_deadline_at ? $process->sign_deadline_at->format('d/m/Y H:i:s') : 'N/A' }}</td>
                         <td class="whitespace-nowrap text-xs">{{ $process->expires_at ? $process->expires_at->format('d/m/Y H:i:s') : 'N/A' }}</td>
+                        <td class="whitespace-nowrap text-xs">{{ $process->created_at->format('d/m/Y H:i:s') }}</td>
                         <td class="whitespace-nowrap text-xs w-8">
                             <a href="{{ route('signer.process-preview', ['process' => $process->id ]) }}" target="_blank" class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-0.5 cursor-pointer border border-primary/80 bg-primary/25 hover:bg-primary/40">
                                 <span>Visualizar</span>
@@ -236,6 +270,7 @@ new class extends Component
     @teleport('body')
     <div>
         <livewire:panel.process.modal-create />
+        <livewire:panel.process.modal-filter />
     </div>
     @endteleport
 

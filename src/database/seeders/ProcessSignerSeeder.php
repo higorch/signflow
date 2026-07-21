@@ -32,12 +32,14 @@ class ProcessSignerSeeder extends Seeder
                     default => 'awaiting-signature',
                 };
 
+                $actionAt = in_array($status, ['signed', 'rejected']) ? fake()->dateTimeBetween($process->created_at, $process->updated_at) : null;
+
                 ProcessSigner::create([
                     'user_id' => $user->id,
                     'process_id' => $process->id,
                     'status' => $status,
                     'sort' => $sort + 1,
-                    'action_at' => in_array($status, ['signed', 'rejected']) ? now()->subDays(random_int(0, 30)) : null,
+                    'action_at' => $actionAt,
                     'rejection_reason' => $status === 'rejected' ? fake()->sentence() : null,
                 ]);
             }

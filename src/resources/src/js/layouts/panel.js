@@ -26,6 +26,14 @@ document.addEventListener('alpine:init', () => {
                     }
                 });
             },
+            ['@open-modal-singer-processes.window']() {
+                this.$dispatch('open-modal', {
+                    ref: 'modal-singer-processes',
+                    payload: {
+                        signerId: this.$event.detail.signerId
+                    }
+                });
+            },
             ['@open-modal-user-filter.window']() {
                 this.$dispatch('open-modal', {
                     ref: 'modal-user-filter',
@@ -42,11 +50,11 @@ document.addEventListener('alpine:init', () => {
                     }
                 });
             },
-            ['@open-modal-singer-processes.window']() {
+            ['@open-modal-process-filter.window']() {
                 this.$dispatch('open-modal', {
-                    ref: 'modal-singer-processes',
+                    ref: 'modal-process-filter',
                     payload: {
-                        signerId: this.$event.detail.signerId
+                        fields: this.$event.detail.fields
                     }
                 });
             },
@@ -67,6 +75,22 @@ document.addEventListener('alpine:init', () => {
         },
         init() {
             this.$watch('menuOpen', v => localStorage.setItem('menuOpen', v));
+        },
+        async flatpickrPeriod(el, input) {
+            if (window.flatpickr === undefined) await import('@vendors/flatpickr.js');           
+
+            window.flatpickr(el, {
+                locale: 'pt',
+                dateFormat: 'd/m/Y',
+                mode: 'range',
+                defaultDate: this.$wire[input]?.from && this.$wire[input]?.to ? [this.$wire[input].from, this.$wire[input].to] : null,
+                onChange: (selectedDates) => {
+                    if (selectedDates.length !== 2) return;
+
+                    this.$wire.set(`${input}.from`, selectedDates[0].toLocaleDateString('pt-BR'));
+                    this.$wire.set(`${input}.to`, selectedDates[1].toLocaleDateString('pt-BR'));
+                }
+            });
         }
     }));
 });

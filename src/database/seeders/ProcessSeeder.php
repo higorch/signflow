@@ -49,6 +49,9 @@ class ProcessSeeder extends Seeder
                 Process::query()->where('reference', $reference)->exists()
             );
 
+            $createdAt = $faker->dateTimeBetween('-2 years', '-1 day');
+            $updatedAt = $faker->dateTimeBetween($createdAt, '-1 day');
+
             Process::create([
                 'owner_id' => $customers->random()->id,
                 'category_id' => $categories->random()->id,
@@ -57,8 +60,10 @@ class ProcessSeeder extends Seeder
                 'description' => $faker->boolean(80) ? $faker->paragraph(random_int(1, 3)) : null,
                 'status' => Arr::random($statuses),
                 'sequential_signing' => $faker->boolean(),
-                'sign_deadline_at' => $faker->boolean(70) ? now()->addDays(random_int(3, 30)) : null,
-                'expires_at' => $faker->boolean(50) ? now()->addDays(random_int(30, 180)) : null,
+                'sign_deadline_at' => $faker->boolean(70) ? $faker->dateTimeBetween($updatedAt, '+30 days') : null,
+                'expires_at' => $faker->boolean(50) ? $faker->dateTimeBetween($updatedAt, '+180 days') : null,
+                'created_at' => $createdAt,
+                'updated_at' => $updatedAt,
             ]);
         }
 
