@@ -1,8 +1,9 @@
 <?php
 
-use App\Models\Process;
 use Carbon\Carbon;
+use App\Models\Process;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -91,6 +92,37 @@ new class extends Component
                 Carbon::createFromFormat('d/m/Y', $period['to'])->endOfDay(),
             ]);
         })->latest()->paginate($this->perPage);
+    }
+
+    public function removeProcess(?string $id): void
+    {
+        try {
+            $process = Process::withCount([
+                'signers' => function ($query) {
+                    $query->whereIn('status', ['signed', 'rejected']);
+                }
+            ])->findOrFail($id);
+
+            $this->authorize('delete', $process);
+
+            if ($process->signers_count > 0) {
+                $this->dispatch('notify', msg: 'O processo já possui assinaturas e não pode ser removido.', type: 'warning');
+                return;
+            }
+
+            $process->delete();
+
+            $this->dispatch('notify', msg: 'Processo removido com sucesso.', type: 'success');
+        } catch (\Throwable $e) {
+            Log::channel('process')->error('Erro ao remover processo', [
+                'process_id' => $id,
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            $this->dispatch('notify', msg: 'Erro ao remover o processo.', type: 'error');
+        }
     }
 };
 ?>
@@ -213,7 +245,7 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
                                         <i class="las la-pen"></i>Editar
                                     </a>
                                     <div class="my-1 h-px bg-border"></div>
-                                    <a href="#" wire:click.prevent="delete" wire:confirm-modal="Excluir Processo | Deseja excluir o processo '{{ $process->reference }}' permanentemente?" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-text-muted/75 transition hover:bg-card-hover hover:text-text">
+                                    <a href="#" wire:click.prevent="removeProcess('{{ $process->id }}')" wire:confirm-modal="Excluir Processo | Deseja excluir o processo '{{ $process->reference }}' permanentemente?" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-text-muted/75 transition hover:bg-card-hover hover:text-text">
                                         <i class="las la-trash"></i>Excluir
                                     </a>
                                 </div>

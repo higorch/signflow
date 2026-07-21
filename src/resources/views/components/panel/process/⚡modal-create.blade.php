@@ -39,6 +39,8 @@ new class extends Component
 
     public function submit()
     {
+        $this->authorize('create', Process::class);
+        
         $this->validate();
 
         try {

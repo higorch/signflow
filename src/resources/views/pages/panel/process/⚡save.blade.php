@@ -130,6 +130,8 @@ new class extends Component
 
     public function submit(string $processStatus)
     {
+        $this->authorize('update', $this->process);
+
         $this->validate();
 
         DB::beginTransaction();
