@@ -1,8 +1,11 @@
 <?php
 
-use App\Models\Process;
-use Illuminate\Database\Eloquent\Builder;
 use Carbon\CarbonInterval;
+use App\Exports\DashboardExport;
+use App\Models\Process;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Excel as ExcelFormat;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -39,6 +42,53 @@ new class extends Component
             'failed' => $this->getFailedProcesses(),
             'average' => $this->getAverageApprovalTime(),
         ];
+    }
+
+    #[Computed]
+    public function buildAnalyticsData()
+    {
+        return Process::query()->with([
+            'category:id,title',
+            'owner:id,name',
+            'signers:id,process_id,status,action_at',
+        ])->get()->map(function (Process $process) {
+
+            $signed = $process->signers->where('status', 'signed')->count();
+            $rejected = $process->signers->where('status', 'rejected')->count();
+            $pending = $process->signers->where('status', 'pending')->count();
+
+            $lastSigned = $process->signers->where('status', 'signed')->sortByDesc('action_at')->first();
+
+            return [
+                'reference' => $process->reference,
+                'title' => $process->title,
+                'category_id' => $process->category_id,
+                'category' => $process->category?->title,
+                'owner_id' => $process->owner_id,
+                'owner' => $process->owner?->name,
+                'status' => $process->status,
+                'created_at' => optional($process->created_at)->format('Y-m-d H:i:s'),
+                'updated_at' => optional($process->updated_at)->format('Y-m-d H:i:s'),
+                'sign_deadline_at' => optional($process->sign_deadline_at)->format('Y-m-d H:i:s'),
+                'expires_at' => optional($process->expires_at)->format('Y-m-d H:i:s'),
+                'total_signers' => $process->signers->count(),
+                'signed_signers' => $signed,
+                'rejected_signers' => $rejected,
+                'pending_signers' => $pending,
+                'approval_time_hours' => $lastSigned?->action_at ? round($process->created_at->diffInSeconds($lastSigned->action_at) / 3600, 2) : null,
+            ];
+        });
+    }
+
+    public function export()
+    {
+        $date = now()->format('Y-m-d_H-i-s');
+
+        return Excel::download(
+            new DashboardExport($this->buildAnalyticsData),
+            "dashboard-{$date}.csv",
+            ExcelFormat::CSV
+        );
     }
 
     private function getTotalProcesses(): int
@@ -123,7 +173,7 @@ new class extends Component
             <h3 class="text-sm md:text-lg font-semibold tracking-wide uppercase text-text-soft">{{ $pageTitle }}</h3>
         </div>
         <div class="flex items-center justify-between gap-3">
-            <a href="#" @click.prevent class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-6 py-3 bg-primary text-text-soft">
+            <a href="#" wire:click.prevent="export" wire:confirm-modal="Exportar dados analíticos | Deseja exportar um arquivo CSV com os dados analíticos dos processos? O arquivo contém informações para criação de relatórios, dashboards e análises em ferramentas como Excel e Power BI." class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-6 py-3 bg-primary text-text-soft">
                 <i class="las la-file-csv text-xl"></i>
                 <span class="text-sm">Exportar</span>
             </a>
