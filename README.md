@@ -45,9 +45,9 @@ docker exec -it app bash
 Instale as dependências, copie o arquivo de configuração e gere a chave da aplicação.
 
 ```bash
-composer install
-
 cp .env.example .env
+
+composer install
 
 php artisan key:generate
 ```
@@ -78,7 +78,7 @@ Os seeders criam automaticamente:
 
 ## ⚙️ Processamento da fila
 
-Em um novo terminal execute:
+Dentro do container app, em um novo terminal execute:
 
 ```bash
 php artisan queue:work
