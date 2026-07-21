@@ -99,9 +99,7 @@ new class extends Component
                     'status' => $signer ? $signer->status : 'active'
                 ];
 
-                if ($signer) {
-                    $signer->update($data);
-                } else {
+                if (!$signer) {
                     $data['role'] = 'signer';
                     $data['password'] = Str::password(
                         length: 16,
@@ -114,16 +112,18 @@ new class extends Component
                     $signer = User::create($data);
                 }
 
-                $processSigner = $this->process->signers()->firstOrCreate([
-                    'user_id' => $signer->id,
-                    'status' => 'awaiting-signature',
-                    'department_id' => $this->form['department']
-                ]);
+                $exists = $this->process->signers()->where('user_id', $signer->id)->exists();
 
-                if ($processSigner->wasRecentlyCreated) {
-                    $this->dispatch('notify', msg: 'Signatário adicionado com sucesso.', type: 'success');
-                } else {
+                if ($exists) {
                     $this->dispatch('notify', msg: 'Signatário já está vinculado a este processo.', type: 'info');
+                } else {
+                    $this->process->signers()->firstOrCreate([
+                        'user_id' => $signer->id,
+                        'status' => 'awaiting-signature',
+                        'department_id' => $this->form['department']
+                    ]);
+
+                    $this->dispatch('notify', msg: 'Signatário adicionado com sucesso.', type: 'success');
                 }
             });
 
