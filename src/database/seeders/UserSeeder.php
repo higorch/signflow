@@ -14,22 +14,29 @@ class UserSeeder extends Seeder
     {
         $users = [
             [
-                'name' => 'Higor Ferreira',
+                'name' => 'Lamine Yamal',
                 'role' => 'root',
+                'status' => 'active',
+                'email' => 'yamal@mail.test',
+                'email_verified_at' => now(),
+            ],
+            [
+                'name' => 'Higor Ferreira',
+                'role' => 'customer',
                 'status' => 'active',
                 'email' => 'higor@mail.test',
                 'email_verified_at' => now(),
             ],
             [
                 'name' => 'Guilherme Correia',
-                'role' => 'root',
+                'role' => 'customer',
                 'status' => 'active',
                 'email' => 'guilherme@mail.test',
                 'email_verified_at' => now(),
             ],
             [
                 'name' => 'Erling Haaland',
-                'role' => 'customer',
+                'role' => 'signer',
                 'status' => 'active',
                 'email' => 'haaland@mail.test',
                 'email_verified_at' => now(),
@@ -39,6 +46,13 @@ class UserSeeder extends Seeder
                 'role' => 'signer',
                 'status' => 'active',
                 'email' => 'vozinha@mail.test',
+                'email_verified_at' => now(),
+            ],
+            [
+                'name' => 'Maria Teodoro',
+                'role' => 'signer',
+                'status' => 'active',
+                'email' => 'maria@mail.test',
                 'email_verified_at' => now(),
             ],
         ];

@@ -37,19 +37,6 @@ return new class extends Migration
 
             $table->unique(['process_id', 'user_id'], 'process_signers_process_user_unique');
         });
-
-        Schema::create('process_signer_tokens', function (Blueprint $table) {
-            $table->ulid('id')->primary();
-
-            $table->foreignUlid('process_signer_id');
-            $table->foreign('process_signer_id')->references('id')->on('process_signers')->cascadeOnUpdate()->cascadeOnDelete();
-
-            $table->string('token', 64)->unique();
-            $table->timestamp('expires_at')->nullable();
-            $table->timestamp('used_at')->nullable();
-
-            $table->timestamps();
-        });
     }
 
     /**
@@ -57,7 +44,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('process_signer_tokens');
         Schema::dropIfExists('process_signers');
     }
 };

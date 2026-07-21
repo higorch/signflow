@@ -12,6 +12,8 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             DepartmentSeeder::class,
             UserSeeder::class,
+            ProcessSeeder::class,
+            ProcessSignerSeeder::class,
         ]);
     }
 }
