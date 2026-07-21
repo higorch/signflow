@@ -39,7 +39,7 @@ new class extends Component
     #[Computed]
     public function processSigner()
     {
-        if (is_null($this->processSignerId)) return null;
+        if (blank($this->processSignerId)) return null;
 
         return ProcessSigner::with('process')->find($this->processSignerId);
     }

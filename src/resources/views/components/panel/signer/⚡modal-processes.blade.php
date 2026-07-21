@@ -4,15 +4,20 @@ use App\Models\User;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithoutUrlPagination;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+    use WithPagination, WithoutUrlPagination;
+
     public ?string $signerId = null;
 
     public function render()
     {
         return $this->view([
-            'signer' => $this->signer
+            'signer' => $this->signer,
+            'processSigners' => $this->processSigners,
         ]);
     }
 
@@ -25,11 +30,17 @@ new class extends Component
     #[Computed]
     public function signer()
     {
-        if (is_null($this->signerId)) return null;
+        if (blank($this->signerId)) return null;
 
-        return User::where('ulid', $this->signerId)->with([
-            'processSigners.process'
-        ])->first();
+        return User::where('ulid', $this->signerId)->first();
+    }
+
+    #[Computed]
+    public function processSigners()
+    {
+        if (blank($this->signer)) return collect();
+
+        return $this->signer->processSigners()->with('process')->latest()->paginate(5);
     }
 };
 ?>
@@ -53,7 +64,7 @@ new class extends Component
             {{-- BODY --}}
             <div class="flex flex-col grow p-4">
 
-                @if($signer && $signer->processSigners->isNotEmpty())
+                @if($processSigners->isNotEmpty())
                 <div class="col-span-full md:col-span-12 flex flex-col gap-4">
 
                     {{-- TABELA --}}
@@ -62,24 +73,24 @@ new class extends Component
                             <thead>
                                 <tr>
                                     <th class="sticky left-0">Processo</th>
-                                    <th class="w-45">Status</th>
+                                    <th class="w-40">Status</th>
                                     <th>Assina até</th>
                                     <th>Valido até</th>
-                                    <th class="sticky right-0 w-45">Ação em</th>
+                                    <th class="sticky right-0 w-40">Ação em</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($signer->processSigners as $signer)
-                                <tr wire:key="process-{{ $signer->id }}">
-                                    <td class="sticky left-0">
-                                        <div class="flex items-center gap-1">
+                                @foreach($processSigners as $signer)
+                                <tr wire:key="signer-{{ $signer->id }}">
+                                    <td class="sticky left-0 text-xs">
+                                        <div class="flex flex-col gap-1">
                                             <span class="text-text-muted/70">{{ $signer->process->reference }}</span>
                                             <span class="text-text-soft">
-                                                {{ Str::words($signer->process->title, 5, '...') }}
+                                                {{ Str::words($signer->process->title, 3, '...') }}
                                             </span>
                                         </div>
                                     </td>
-                                    <td class="whitespace-nowrap text-xs w-45">
+                                    <td class="whitespace-nowrap text-xs w-40">
                                         @php
                                         $badge = match ($signer->status) {
                                         'awaiting-signature' => [
@@ -104,13 +115,13 @@ new class extends Component
                                         };
                                         @endphp
 
-                                        <span class="badge {{ $badge['class'] }}">
+                                        <span class="w-full badge {{ $badge['class'] }}">
                                             {{ $badge['label'] }}
                                         </span>
                                     </td>
                                     <td class="whitespace-nowrap text-xs">{{ $signer->process->sign_deadline_at ? $signer->process->sign_deadline_at->format('d/m/Y H:i:s') : 'N/A' }}</td>
                                     <td class="whitespace-nowrap text-xs">{{ $signer->process->expires_at ? $signer->process->expires_at->format('d/m/Y H:i:s') : 'N/A' }}</td>
-                                    <td class="whitespace-nowrap text-xs sticky right-0 w-45">
+                                    <td class="whitespace-nowrap text-xs sticky right-0 w-40">
                                         {{ $signer->action_at ? $signer->action_at->format('d/m/Y H:i:s') : 'N/A' }}
                                     </td>
                                 </tr>
@@ -118,6 +129,12 @@ new class extends Component
                             </tbody>
                         </table>
                     </div>
+
+                    @if($processSigners->hasPages())
+                    <div>
+                        {{ $processSigners->onEachSide(1)->links('layouts.pagination-simple', data: ['scrollTo' => 'table']) }}
+                    </div>
+                    @endif
 
                 </div>
                 @else

@@ -42,7 +42,7 @@ class ProcessSeeder extends Seeder
             'canceled',
         ];
 
-        foreach (range(1, 100) as $i) {
+        foreach (range(1, 200) as $i) {
             do {
                 $reference = yearNumberRandom();
             } while (

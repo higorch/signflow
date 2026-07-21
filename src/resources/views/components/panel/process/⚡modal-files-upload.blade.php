@@ -110,7 +110,7 @@ new class extends Component
     #[Computed]
     public function process()
     {
-        if (is_null($this->processId)) return null;
+        if (blank($this->processId)) return null;
 
         return Process::where('id', $this->processId)->withCount([
             'processFiles'

@@ -27,9 +27,9 @@ class ProcessSignerSeeder extends Seeder
 
                 $status = match ($process->status) {
                     'approved' => 'signed',
-                    'failed' => fake()->boolean(50) ? 'rejected' : 'pending',
-                    'canceled' => 'pending',
-                    default => 'pending',
+                    'failed' => fake()->boolean(50) ? 'rejected' : 'awaiting-signature',
+                    'canceled' => 'rejected',
+                    default => 'awaiting-signature',
                 };
 
                 ProcessSigner::create([

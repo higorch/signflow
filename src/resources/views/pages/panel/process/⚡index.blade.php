@@ -11,7 +11,7 @@ new class extends Component
 {
     use WithPagination;
 
-    public int $perPage = 10;
+    public int $perPage = 8;
     public array $search = [];
 
     public function render()
@@ -62,7 +62,7 @@ new class extends Component
     #[Computed]
     public function processes()
     {
-        return Process::ownedBy(Auth::id())->paginate(10);
+        return Process::ownedBy(Auth::id())->latest()->paginate($this->perPage);
     }
 };
 ?>
@@ -148,7 +148,7 @@ new class extends Component
                             };
                             @endphp
 
-                            <span class="badge {{ $badge['class'] }}">
+                            <span class="w-full badge {{ $badge['class'] }}">
                                 {{ $badge['label'] }}
                             </span>
                         </td>
@@ -183,7 +183,7 @@ new class extends Component
 
         @if($processes->hasPages())
         <div>
-            {{ $processes->links('layouts.pagination', data: ['scrollTo' => 'body']) }}
+            {{ $processes->onEachSide(1)->links('layouts.pagination', data: ['scrollTo' => 'body']) }}
         </div>
         @endif
 

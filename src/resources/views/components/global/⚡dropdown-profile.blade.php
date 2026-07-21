@@ -70,10 +70,10 @@ new class extends Component
         </div>
     </a>
     <div x-ref="floatingDropdown" :class="{'flex':open,'hidden':!open}" class="absolute right-0 hidden w-40 flex-col gap-1 rounded-md border border-border bg-card p-2 shadow-lg">
-        <a href="{{ $profileUrl }}" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-text-muted/75 transition hover:bg-card-hover hover:text-text">
+        {{-- <a href="{{ $profileUrl }}" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-text-muted/75 transition hover:bg-card-hover hover:text-text">
             <i class="las la-user text-base"></i> Meu perfil
-        </a>
-        <div class="my-1 h-px bg-border"></div>
+        </a> --}}
+        {{-- <div class="my-1 h-px bg-border"></div> --}}
         <a href="#" @click.prevent="$dispatch('logout')" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-text-muted/75 transition hover:bg-card-hover hover:text-text">
             <i class="las la-sign-out-alt text-base"></i> Sair
         </a>

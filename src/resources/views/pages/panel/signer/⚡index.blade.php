@@ -12,7 +12,7 @@ new class extends Component
 {
     use WithPagination;
 
-    public int $perPage = 10;
+    public int $perPage = 8;
     public array $search = [];
 
     public function render()
