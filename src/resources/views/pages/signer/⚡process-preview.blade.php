@@ -1,122 +1,48 @@
 <?php
 
-use App\Models\ProcessSigner;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\URL;
+use App\Models\Process;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
 {
-    public ProcessSigner $processSigner;
+    public Process $process;
 
     public function render()
     {
         return $this->view([
-            'pageTitle' => $this->pageTitle,
-            'canSign' => $this->canSign,
-            'process' => $this->process,
+            'pageTitle' => $this->pageTitle
         ])->layout('layouts::signer')->title($this->pageTitle);
     }
 
-    public function mount(ProcessSigner $processSigner)
+    public function mount(Process $process)
     {
-        $this->processSigner = $processSigner->load([
-            'user',
-            'department',
-            'process',
-            'process.processFiles' => function ($query) {
+        abort_if(!$process, 404);
+
+        $this->process = $process->load([
+            'signers.user',
+            'signers.department',
+            'processFiles' => function ($query) {
                 $query->orderByRaw('CASE WHEN sort IS NULL THEN 1 ELSE 0 END')->orderBy('sort')->orderBy('created_at');
             },
-            'process.signers' => function ($query) {
+            'signers' => function ($query) {
                 $query->with([
                     'user',
                     'department',
                 ])->orderByRaw('CASE WHEN sort IS NULL THEN 1 ELSE 0 END')->orderBy('sort')->orderBy('created_at');
             },
         ]);
-
-        abort_unless($this->process, 404);
-    }
-
-    #[Computed]
-    public function process()
-    {
-        return $this->processSigner->process;
     }
 
     #[Computed]
     public function pageTitle()
     {
-        return 'Assinar Processo';
-    }
-
-    #[Computed]
-    public function canSign(): bool
-    {
-        return $this->process->status === 'awaiting-approval' && $this->processSigner->status === 'awaiting-signature';
-    }
-
-    public function sign()
-    {
-        DB::beginTransaction();
-
-        try {
-            if (!$this->canSign) throw new \Exception('Assinatura não permitida.', 403);
-
-            $this->processSigner->update([
-                'status' => 'signed',
-                'action_at' => now(),
-                'action_ip' => request()->ip(),
-                'action_agent' => request()->userAgent(),
-            ]);
-
-            $pendingSigners = $this->process->signers()->where('status', '!=', 'signed')->exists();
-
-            if (!$pendingSigners) {
-                $this->process->update([
-                    'status' => 'approved',
-                ]);
-            }
-
-            DB::commit();
-
-            session()->flash('success', 'Processo assinado com sucesso..');
-
-            return redirect()->to(
-                URL::temporarySignedRoute('signer.process', now()->addMinutes(30), [
-                    'processSigner' => $this->processSigner->id,
-                ])
-            );
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            Log::channel('process')->error('Erro ao assinar processo', [
-                'process_id' => $this->process->id,
-                'process_signer_id' => $this->processSigner->id,
-                'message' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-            ]);
-
-            $this->dispatch('notify', msg: 'Não foi possível assinar o processo.', type: 'error');
-        }
+        return 'Preview Processo';
     }
 };
 ?>
 
 <div class="flex-1 flex flex-col max-w-2xl w-full mx-auto min-h-dvh">
-
-    @if (session('success'))
-    <div class="alert alert-success flex items-center justify-between mb-3">
-        <div class="flex items-start gap-2">
-            <div class="alert-icon"><i class="las la-check-circle"></i></div>
-            <div class="alert-content leading-normal">{{ session('success') }}</div>
-        </div>
-        <a href="#" @click.prevent="$el.closest('.alert').remove()" class="px-2 py-1 border border-emerald-400/40 rounded text-emerald-300 hover:text-emerald-200 hover:border-emerald-300 transition text-[11px] tracking-wide uppercase">Fechar</a>
-    </div>
-    @endif
 
     {{-- Cabeçalho --}}
     <div class="border-b border-border/40 pb-6">
@@ -173,7 +99,7 @@ new class extends Component
             </div>
             @empty
             <div class="rounded-md border border-dashed border-border p-8 text-center text-sm text-text-muted">
-                Nenhuma mídia disponível.
+               Nenhuma mídia disponível.
             </div>
             @endforelse
         </div>
@@ -232,11 +158,7 @@ new class extends Component
 
     {{-- Footer --}}
     <div class="mt-10 border-t border-border/40 pt-8 space-y-3">
-        @if($canSign)
-        <button type="button" wire:click="sign" wire:confirm-modal="Concordo e assinar | Deseja assinar o processo '{{ $process->reference }}'?" class="cursor-pointer btn-primary w-full h-12">Concordo, vou assinar</button>
-        <button type="button" @click.prevent="$dispatch('open-modal-process-rejected', { processSignerId: '{{ $processSigner->id }}' })" class="cursor-pointer w-full h-12 rounded-md border border-danger/40 bg-danger/10 text-danger hover:bg-danger/20">Discordo, não assino</button>
-        @endif
-        <div class="{{ $canSign === 'awaiting-approval' ? 'mt-8' : 'mt-0' }} flex flex-col items-center gap-3">
+        <div class="flex flex-col items-center gap-3">
             <img src="{{ Vite::asset('resources/assets/images/logo-white.png') }}" alt="Logo" class="h-9 w-auto opacity-90">
             <p class="max-w-sm text-center text-xs leading-5 text-text-muted">
                 Plataforma de assinatura eletrônica desenvolvida para garantir autenticidade,

@@ -44,5 +44,6 @@ Route::group(['prefix' => 'panel', 'as' => 'panel.', 'middleware' => ['user.auth
 });
 
 Route::group(['prefix' => 'signer', 'as' => 'signer.'], function () {
-    Route::livewire('{process}/process', 'pages::signer.process')->name('process');
+    Route::livewire('{process}/process-preview', 'pages::signer.process-preview')->name('process-preview');
+    Route::livewire('{processSigner}/process', 'pages::signer.process')->middleware('signed')->name('process');
 });

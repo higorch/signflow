@@ -127,7 +127,7 @@ new class extends Component
                             ],
 
                             'approved' => [
-                            'class' => 'badge-grenn',
+                            'class' => 'badge-green',
                             'label' => 'Todos assinaram',
                             ],
 
@@ -155,7 +155,7 @@ new class extends Component
                         <td class="whitespace-nowrap text-xs">{{ $process->sign_deadline_at ? $process->sign_deadline_at->format('d/m/Y H:i:s') : 'N/A' }}</td>
                         <td class="whitespace-nowrap text-xs">{{ $process->expires_at ? $process->expires_at->format('d/m/Y H:i:s') : 'N/A' }}</td>
                         <td class="whitespace-nowrap text-xs w-8">
-                            <a href="{{ route('signer.process', ['process' => $process->id ]) }}" target="_blank" class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-0.5 cursor-pointer border border-primary/80 bg-primary/25 hover:bg-primary/40">
+                            <a href="{{ route('signer.process-preview', ['process' => $process->id ]) }}" target="_blank" class="flex-1 md:w-auto h-full inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-0.5 cursor-pointer border border-primary/80 bg-primary/25 hover:bg-primary/40">
                                 <span>Visualizar</span>
                             </a>
                         </td>

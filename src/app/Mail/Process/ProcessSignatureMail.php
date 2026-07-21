@@ -11,6 +11,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\URL;
 
 class ProcessSignatureMail extends Mailable
 {
@@ -46,7 +47,9 @@ class ProcessSignatureMail extends Mailable
             with: [
                 'process' => $this->process,
                 'signer' => $this->signer,
-                'url' => route('signer.process', ['process' => $this->process->id]),
+                'url' => URL::temporarySignedRoute('signer.process',  now()->addDays(7), [
+                    'processSigner' => $this->signer,
+                ]),
             ],
         );
     }
