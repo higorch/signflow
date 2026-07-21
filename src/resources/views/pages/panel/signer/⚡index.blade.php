@@ -65,18 +65,33 @@ new class extends Component
     {
         $user = Auth::user();
 
-        return User::whereHas('processSigners.process', function ($query) use ($user) {
-            if (hmac_hash('customer') === $user->role_hash) return;
-            $query->ownedBy($user->id);
+        return User::query()->where('role_hash', hmac_hash('signer'))->where(function ($query) use ($user) {
+            if ($user->role_hash === hmac_hash('customer')) {
+                $query->whereHas('processSigners.process', function ($query) use ($user) {
+                    $query->ownedBy($user->id);
+                })->orWhereHas('linkedCustomers', function ($query) use ($user) {
+                    $query->whereKey($user->id);
+                });
+            } else {
+                $query->whereHas('processSigners.process', function ($query) use ($user) {
+                    $query->ownedBy($user->id);
+                });
+            }
         })->withCount([
-            'processSigners',
+            'processSigners as process_signers_count' => function ($query) use ($user) {
+                $query->whereHas('process', function ($query) use ($user) {
+                    if ($user->role_hash !== hmac_hash('customer')) {
+                        $query->ownedBy($user->id);
+                    }
+                });
+            },
         ])->when(data_get($this->search, 'email'), function ($query, $term) {
-            $query->where('email_hash', 'like', "%" . hmac_hash($term) . "%");
+            $query->where('email_hash', 'like', '%' . hmac_hash($term) . '%');
         })->when(data_get($this->search, 'status'), function ($query, $term) {
             $query->where('status', $term);
         })->when(data_get($this->search, 'cpf_cnpj'), function ($query, $term) {
             $query->where('cpf_cnpj_hash', hmac_hash($term, true, true));
-        })->orderBy('created_at', 'asc')->paginate($this->perPage);
+        })->latest()->paginate($this->perPage);
     }
 
     public function removeSigner(?string $id)

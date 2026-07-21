@@ -62,7 +62,17 @@ new class extends Component
     #[Computed]
     public function processes()
     {
-        return Process::ownedBy(Auth::id())->latest()->paginate($this->perPage);
+        $user = Auth::user();
+        $query = Process::query();
+
+        if ($user->role_hash === hmac_hash('customer')) {
+            $ownerIds = $user->internalUsers()->pluck('users.id')->push($user->id);
+            $query->whereIn('owner_id', $ownerIds);
+        } else {
+            $query->ownedBy($user->id);
+        }
+
+        return $query->latest()->paginate($this->perPage);
     }
 };
 ?>
