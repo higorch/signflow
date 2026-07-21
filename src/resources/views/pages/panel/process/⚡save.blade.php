@@ -4,6 +4,7 @@ use App\Models\Attachment;
 use App\Models\Category;
 use App\Models\Process;
 use App\Models\ProcessSigner;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -131,40 +132,93 @@ new class extends Component
     {
         $this->validate();
 
+        DB::beginTransaction();
+
         try {
             if (!in_array($processStatus, ['draft', 'awaiting-approval'])) {
-                throw new \Exception("Status inválido", 422);
-            } else {
-                $this->process->update([
-                    'category_id' => $this->form['category'],
-                    'title' => $this->form['title'],
-                    'description' => $this->form['description'],
-                    'status' => $processStatus
-                ]);
-
-                foreach ($this->captions as $id => $caption) {
-                    $this->process->processFiles()->whereKey($id)->update([
-                        'caption' => trim($caption),
-                    ]);
-                }
-
-                if ($processStatus === 'awaiting-approval') {
-                    session()->flash('success', 'Enviado, em breve os signatário vão receber o e-mail.');
-                } else {
-                    session()->flash('success', 'Processo salvo com sucesso.');
-                }
-
-                return $this->redirectRoute('panel.processes.edit', [
-                    'process' => $this->process->id,
-                ], navigate: true);
+                throw new \Exception('Status inválido', 422);
             }
-        } catch (\Exception $e) {
-            Log::channel('process')->error('Erro ao salvar', ['message' => $e->getMessage()]);
+
+            $this->process->update([
+                'category_id' => $this->form['category'],
+                'title' => $this->form['title'],
+                'description' => $this->form['description'],
+                'status' => $processStatus,
+            ]);
+
+            foreach ($this->captions as $id => $caption) {
+                $this->process->processFiles()->whereKey($id)->update([
+                    'caption' => trim($caption)
+                ]);
+            }
+
+            if ($processStatus === 'awaiting-approval') {
+                dispatch(new \App\Jobs\SendProcessEmailToSignerJob($this->process->id))->afterCommit();
+                session()->flash('success', 'Enviado, em breve os signatários vão receber o e-mail.');
+            } else {
+                session()->flash('success', 'Processo salvo com sucesso.');
+            }
+
+            DB::commit();
+
+            return $this->redirectRoute('panel.processes.edit', [
+                'process' => $this->process->id,
+            ], navigate: true);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::channel('process')->error('Erro ao salvar', [
+                'process_id' => $this->process->id,
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
 
             match ($e->getCode()) {
-                422 => $this->dispatch('notify', msg: $e->getMessage(), type: "error"),
-                default => $this->dispatch('notify', msg: "Não foi possível salvar.", type: "error"),
+                422 => $this->dispatch('notify', msg: $e->getMessage(), type: 'error'),
+                default => $this->dispatch('notify', msg: 'Não foi possível salvar.', type: 'error'),
             };
+        }
+    }
+
+    public function draft()
+    {
+        DB::beginTransaction();
+
+        try {
+            $this->process->update([
+                'category_id' => $this->form['category'],
+                'title' => $this->form['title'],
+                'description' => $this->form['description'],
+                'status' => 'draft',
+            ]);
+
+            foreach ($this->captions as $id => $caption) {
+                $this->process->processFiles()->whereKey($id)->update([
+                    'caption' => trim($caption)
+                ]);
+            }
+
+            dispatch(new \App\Jobs\SendProcessReturnedToDraftEmailToSignerJob($this->process->id))->afterCommit();
+
+            DB::commit();
+
+            session()->flash('success', 'Processo retornado para rascunho com sucesso.');
+
+            return $this->redirectRoute('panel.processes.edit', [
+                'process' => $this->process->id,
+            ], navigate: true);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::channel('process')->error('Erro ao retornar processo para rascunho', [
+                'process_id' => $this->process->id,
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            $this->dispatch('notify', msg: 'Não foi possível retornar o processo para rascunho.', type: 'error');
         }
     }
 
@@ -310,6 +364,12 @@ new class extends Component
             </h3>
         </div>
         <div class="flex items-center justify-between gap-3">
+            @if($process->status === 'awaiting-approval')
+            <a href="#" wire:click.prevent="draft" wire:confirm-modal="Retornar para rascunho | O processo voltará para rascunho, ficará indisponível para assinatura e todos os signatários serão notificados por e-mail. Deseja continuar?" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-warning px-6 py-3 text-xs md:whitespace-nowrap font-semibold uppercase tracking-wide text-card shadow-lg transition hover:brightness-110">
+                <i class="las la-undo-alt text-lg"></i>
+                Retornar para rascunho
+            </a>
+            @else
             <a href="#" wire:click.prevent="submit('awaiting-approval')" wire:confirm-modal="Enviar para assinatura | Deseja enviar o processo para assinatura agora, os signatário serão notificados por e-mail?" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-6 py-3 text-xs md:whitespace-nowrap font-semibold uppercase tracking-wide text-text-soft shadow-lg transition hover:brightness-110">
                 <i class="lab la-telegram-plane text-lg"></i>
                 Enviar para assinatura
@@ -318,6 +378,7 @@ new class extends Component
                 <i class="las la-save text-lg"></i>
                 Salvar Rescunho
             </a>
+            @endif
         </div>
     </div>
 
@@ -594,6 +655,12 @@ new class extends Component
     <div class="flex flex-col-reverse gap-4 md:flex-row md:items-center md:justify-between mt-3">
         <a href="{{ route('panel.processes.index') }}" wire:navigate class="text-center text-[11px] uppercase tracking-wide text-text-soft/50 transition hover:text-text-soft"><i class="las la-angle-left text-xs"></i> Voltar</a>
         <div class="flex items-center justify-between gap-3">
+            @if($process->status === 'awaiting-approval')
+            <a href="#" wire:click.prevent="draft" wire:confirm-modal="Retornar para rascunho | O processo voltará para rascunho, ficará indisponível para assinatura e todos os signatários serão notificados por e-mail. Deseja continuar?" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-warning px-6 py-3 text-xs md:whitespace-nowrap font-semibold uppercase tracking-wide text-card shadow-lg transition hover:brightness-110">
+                <i class="las la-undo-alt text-lg"></i>
+                Retornar para rascunho
+            </a>
+            @else
             <a href="#" wire:click.prevent="submit('awaiting-approval')" wire:confirm-modal="Enviar para assinatura | Deseja enviar o processo para assinatura agora, os signatário serão notificados por e-mail?" class="flex-1 md:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-6 py-3 text-xs md:whitespace-nowrap font-semibold uppercase tracking-wide text-text-soft shadow-lg transition hover:brightness-110">
                 <i class="lab la-telegram-plane text-lg"></i>
                 Enviar para assinatura
@@ -602,6 +669,7 @@ new class extends Component
                 <i class="las la-save text-lg"></i>
                 Salvar Rescunho
             </a>
+            @endif
         </div>
     </div>
 
