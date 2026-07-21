@@ -42,33 +42,29 @@ Acesse o container da aplicação.
 docker exec -it app bash
 ```
 
-Instale as dependências e gere a chave da aplicação.
+Instale as dependências, copie o arquivo de configuração e gere a chave da aplicação.
 
 ```bash
 composer install
 
+cp .env.example .env
+
 php artisan key:generate
 ```
 
-> O arquivo `.env` já acompanha o projeto configurado para execução em Docker.
+> O arquivo `.env.example` já está configurado para execução via Docker. Basta copiá-lo para `.env` e gerar a chave da aplicação.
 
 ---
 
 ## 🗄️ Banco de dados
 
-Popular apenas os dados de demonstração:
-
-```bash
-php artisan db:seed
-```
-
-Ou recriar completamente o banco:
+Na primeira execução do projeto, ou sempre que desejar recriar completamente o banco de dados com os dados de demonstração, execute:
 
 ```bash
 php artisan migrate:fresh --seed
 ```
 
-Os seeders geram automaticamente:
+Os seeders criam automaticamente:
 
 - Usuários
 - Departamentos
@@ -198,7 +194,7 @@ docker compose up -d --build
 
 ## 📌 Observações
 
-- Aguarde aproximadamente **7 minutos** após subir os containers antes de iniciar a configuração do projeto.
+- Após executar `docker compose up -d`, aguarde aproximadamente **7 minutos** até que todos os containers estejam totalmente inicializados. Somente depois prossiga com a configuração do projeto.
 - O arquivo `.env` já está configurado para o ambiente Docker.
 - Para validar o envio de e-mails, mantenha o `php artisan queue:work` em execução.
 - Todos os e-mails podem ser visualizados em **http://localhost:8030**.
