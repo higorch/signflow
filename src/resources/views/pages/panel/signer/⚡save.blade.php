@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\User;
-use App\Models\Department;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -17,15 +16,13 @@ new class extends Component
         'name' => '',
         'email' => '',
         'cpf_cnpj' => '',
-        'status' => 'active',
-        'department' => ''
+        'status' => 'active'
     ];
 
     public function render()
     {
         return $this->view([
-            'pageTitle' => $this->pageTitle,
-            'departments' => $this->departments
+            'pageTitle' => $this->pageTitle
         ])->title($this->pageTitle);
     }
 
@@ -42,7 +39,6 @@ new class extends Component
         $this->user = $user;
 
         $this->form = [
-            'department' => $user->department_id,
             'name' => $user->name,
             'email' => $user->email,
             'cpf_cnpj' => $user->cpf_cnpj,
@@ -59,19 +55,12 @@ new class extends Component
         return 'Editar Signatário';
     }
 
-    #[Computed]
-    public function departments()
-    {
-        return Department::get();
-    }
-
     public function submit()
     {
         $this->validate();
 
         try {
             $this->user->update([
-                'department_id' => $this->form['department'],
                 'email' => $this->form['email'],
                 'name' => $this->form['name'],
                 'cpf_cnpj' => sanitizeSpecialCharacters($this->form['cpf_cnpj'], true),
@@ -105,10 +94,6 @@ new class extends Component
 
         return [
             'form.status' => 'required|in:active,disabled',
-            'form.department' => [
-                'required',
-                Rule::exists('departments', 'id'),
-            ],
             'form.name' => [
                 'required',
                 'min:5',
@@ -213,7 +198,7 @@ new class extends Component
             </div>
 
             {{-- NAME --}}
-            <div class="relative col-span-full md:col-span-6 flex flex-col gap-1">
+            <div class="relative col-span-full md:col-span-12 flex flex-col gap-1">
                 <label class="label-input-basic">Nome</label>
                 <div class="relative">
                     <input type="text" class="input-basic" wire:model="form.name">
@@ -229,17 +214,6 @@ new class extends Component
                     <input type="email" wire:model="form.email" class="input-basic">
                 </div>
                 @error('form.email') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
-            </div>
-
-            {{-- DEPARTAMENTO --}}
-            <div class="relative col-span-full md:col-span-6 flex flex-col gap-1">
-                <label class="label-input-basic">Departamento</label>
-                <select x-data="choices($wire.entangle('form.department'), '---', '', 'auto', true)">
-                    @foreach($departments as $department)
-                    <option value="{{ $department->id }}">{{ $department->title }}</option>
-                    @endforeach
-                </select>
-                @error('form.department') <span @mouseover="$el.remove()" @touchstart="$el.remove()" class="input-error full label">{{ $message }}</span> @enderror
             </div>
 
             {{-- CPF/CNPJ --}}

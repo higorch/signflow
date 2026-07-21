@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Process;
 use App\Models\User;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -64,6 +63,8 @@ new class extends Component
                                 <tr>
                                     <th class="sticky left-0">Processo</th>
                                     <th class="w-45">Status</th>
+                                    <th>Assina até</th>
+                                    <th>Valido até</th>
                                     <th class="sticky right-0 w-45">Ação em</th>
                                 </tr>
                             </thead>
@@ -107,6 +108,8 @@ new class extends Component
                                             {{ $badge['label'] }}
                                         </span>
                                     </td>
+                                    <td class="whitespace-nowrap text-xs">{{ $signer->process->sign_deadline_at ? $signer->process->sign_deadline_at->format('d/m/Y H:i:s') : 'N/A' }}</td>
+                                    <td class="whitespace-nowrap text-xs">{{ $signer->process->expires_at ? $signer->process->expires_at->format('d/m/Y H:i:s') : 'N/A' }}</td>
                                     <td class="whitespace-nowrap text-xs sticky right-0 w-45">
                                         {{ $signer->action_at ? $signer->action_at->format('d/m/Y H:i:s') : 'N/A' }}
                                     </td>

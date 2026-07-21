@@ -8,30 +8,20 @@ use Livewire\Component;
 new class extends Component
 {
     public $fields = [
-        'name' => '',
         'email' => '',
         'status' => '',
         'cpf_cnpj' => '',
-        'departments' => '',
     ];
 
     public function render()
     {
-        return $this->view([
-            'departments' => $this->departments
-        ]);
+        return $this->view();
     }
 
     #[On('opened.modal-signer-filter')]
     public function openModalSignerFilter(array $payload)
     {
         $this->fields = array_merge($this->fields, data_get($payload, 'fields'));
-    }
-
-    #[Computed]
-    public function departments()
-    {
-        return Department::has('users.processSigners')->get();
     }
 
     public function submit()
@@ -69,23 +59,7 @@ new class extends Component
                             <option value="disabled">Inativo</option>
                         </select>
                     </div>
-
-                    {{-- DEPARTAMENTOS --}}
-                    <div class="relative col-span-12 md:col-span-12 flex flex-col gap-1">
-                        <label class="label-input-basic">Departamentos</label>
-                        <select x-data="choices($wire.entangle('fields.departments'), '---', '', 'auto', true)" multiple>
-                            @foreach($departments as $department)
-                            <option value="{{ $department->id }}">{{ $department->title }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    {{-- NOME --}}
-                    <div class="relative col-span-12 flex flex-col gap-1">
-                        <label class="label-input-basic">Nome</label>
-                        <input type="text" wire:model.defer="fields.name" class="input-basic">
-                    </div>
-
+                    
                     {{-- EMAIL --}}
                     <div class="relative col-span-12 flex flex-col gap-1">
                         <label class="label-input-basic">E-mail</label>

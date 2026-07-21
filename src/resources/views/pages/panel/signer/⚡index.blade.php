@@ -69,16 +69,11 @@ new class extends Component
             if (hmac_hash('customer') === $user->role_hash) return;
             $query->ownedBy($user->id);
         })->withCount([
-            'department',
             'processSigners',
-        ])->when(data_get($this->search, 'name'), function ($query, $term) {
-            $query->where('name_hash', 'like', "%" . hmac_hash($term) . "%");
-        })->when(data_get($this->search, 'email'), function ($query, $term) {
+        ])->when(data_get($this->search, 'email'), function ($query, $term) {
             $query->where('email_hash', 'like', "%" . hmac_hash($term) . "%");
         })->when(data_get($this->search, 'status'), function ($query, $term) {
             $query->where('status', $term);
-        })->when(data_get($this->search, 'departments'), function ($query, $term) {
-            $query->whereIn('department_id', $term);
         })->when(data_get($this->search, 'cpf_cnpj'), function ($query, $term) {
             $query->where('cpf_cnpj_hash', hmac_hash($term, true, true));
         })->orderBy('created_at', 'asc')->paginate($this->perPage);
@@ -156,7 +151,6 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
                         <th class="sticky left-0">Nome</th>
                         <th>E-mail</th>
                         <th>Processos</th>
-                        <th>Departamento</th>
                         <th>CPF/CNPJ</th>
                         <th class="w-45">Status</th>
                         <th class="sticky right-0 w-12 text-center"></th>
@@ -172,9 +166,6 @@ $search = json_encode($search, JSON_UNESCAPED_UNICODE);
                                 ({{ $signer->process_signers_count }})
                                 <span>Ver todos</span>
                             </button>
-                        </td>
-                        <td class="whitespace-nowrap text-xs">
-                            {{ $signer->department ? $signer->department->title : 'N/A' }}
                         </td>
                         <td class="whitespace-nowrap text-xs">{{ $signer->cpf_cnpj ? maskFormat('cpf_cnpj', $signer->cpf_cnpj) : 'N/A' }}</td>
                         <td class="whitespace-nowrap text-xs w-45">
